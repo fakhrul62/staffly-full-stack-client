@@ -8,6 +8,7 @@ import {
 } from "flowbite-react";
 import logo from "../assets/logo.png";
 import { NavLink } from "react-router-dom";
+import "../css/Header.css";
 
 const Header = () => {
   const li = (
@@ -16,30 +17,30 @@ const Header = () => {
         <NavLink to="/">Home</NavLink>
       </NavbarLink>
       <NavbarLink>
-        <NavLink to="/">Home</NavLink>
+        <NavLink to="/about">About</NavLink>
       </NavbarLink>
       <NavbarLink>
-        <NavLink to="/">Home</NavLink>
+        <NavLink to="/blog">Blog</NavLink>
       </NavbarLink>
       <NavbarLink>
-        <NavLink to="/">Home</NavLink>
+        <NavLink to="/contact">Contact</NavLink>
       </NavbarLink>
     </>
   );
   return (
-    <div className="bg-zinc-200 rounded-lg overflow-hidden">
-      <Navbar className="justify-around items-center hidden md:block bg-zinc-200 p-3">
+    <div className="border border-zinc-200 rounded-xl overflow-hidden">
+      <Navbar className="justify-around items-center hidden md:block bg-blue-50 p-3">
         <div className="flex">
           <NavbarBrand href="/">
             <img src={logo} className="mr-3 h-6 sm:h-9" alt="Staffly" />
-            <span className="font-head text-xl font-semibold dark:text-white">
+            <span className="font-body text-xl font-semibold dark:text-white ">
               Staffly
             </span>
           </NavbarBrand>
         </div>
         <div className="flex items-center gap-5">
           <div className="md:order-2">
-            <Button>Login</Button>
+            <Button color="blue" pill>Login</Button>
           </div>
           <NavbarCollapse>{li}</NavbarCollapse>
         </div>

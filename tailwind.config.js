@@ -11,6 +11,7 @@ export default {
       fontFamily: {
         "head": ["Montserrat, serif"],
         "body": ["Inter, serif"],
+        "chivo": ["Chivo, serif"],
       },
     },
   },
