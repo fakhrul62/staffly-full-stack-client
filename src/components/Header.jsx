@@ -1,68 +1,117 @@
-import {
-  Button,
-  Navbar,
-  NavbarBrand,
-  NavbarCollapse,
-  NavbarLink,
-  NavbarToggle,
-} from "flowbite-react";
+import React, { useEffect, useState } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { FaBarsStaggered } from "react-icons/fa6";
+import { PiUserCircleLight } from "react-icons/pi";
+import useAuth from "../hooks/useAuth";
+import useAdmin from "../hooks/useAdmin";
 import logo from "../assets/logo.png";
-import { NavLink } from "react-router-dom";
-import "../css/Header.css";
 
 const Header = () => {
+  const { user, logOut } = useAuth();
+  // const [isAdmin] = useAdmin();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 100) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   const li = (
     <>
-      <NavbarLink>
-        <NavLink to="/">Home</NavLink>
-      </NavbarLink>
-      <NavbarLink>
-        <NavLink to="/about">About</NavLink>
-      </NavbarLink>
-      <NavbarLink>
-        <NavLink to="/blog">Blog</NavLink>
-      </NavbarLink>
-      <NavbarLink>
-        <NavLink to="/contact">Contact</NavLink>
-      </NavbarLink>
+      <NavLink to="/">Home</NavLink>
+      <NavLink to="/contact">Contact</NavLink>
+      {user && (
+        <>
+          <NavLink to="/profile">Profile</NavLink>
+          <NavLink to="/dashboard/home">Dashboard</NavLink>
+        </>
+      )}
+      {/* {user && (
+        
+          isAdmin ? (
+            <>
+            <NavLink to="/profile">Profile</NavLink>
+            <NavLink to="/dashboard/home">Dashboard</NavLink></>
+          ) :
+          (
+            <>
+            <NavLink to="/profile">Profile</NavLink>
+            <NavLink to="/dashboard/user-home">Dashboard</NavLink></>
+          )
+
+      )
+      } */}
     </>
   );
+  const logout = () => {
+    logOut()
+      .then(() => console.log("Logged out Successfully"))
+      .catch((error) => console.log(error.message));
+  };
   return (
-    <div className="border border-zinc-200 rounded-xl overflow-hidden">
-      <Navbar className="justify-around items-center hidden md:block bg-blue-50 p-3">
-        <div className="flex">
-          <NavbarBrand href="/">
+    <div className="fixed top-0 left-0 w-full px-5 pt-5 z-50 transition-all duration-300">
+      <div className="navbar bg-blue-50 border border-blue-200 rounded-xl px-5">
+        <div className="navbar-start">
+          <div className="dropdown">
+            <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
+              <FaBarsStaggered />
+            </div>
+            <ul
+              tabIndex={0}
+              className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+            >
+              {li}
+            </ul>
+          </div>
+          <Link className="flex gap-2 items-center">
+            {/* <span className="w-12"><Lottie animationData={logo} loop={true} /></span> */}
             <img src={logo} className="mr-3 h-6 sm:h-9" alt="Staffly" />
             <span className="font-body text-xl font-semibold dark:text-white ">
               Staffly
-            </span>
-          </NavbarBrand>
+            </span>{" "}
+          </Link>
         </div>
-        <div className="flex items-center gap-5">
-          <div className="md:order-2">
-            <Button color="blue" pill>Login</Button>
-          </div>
-          <NavbarCollapse>{li}</NavbarCollapse>
+        <div className="navbar-end">
+          <ul className="menu menu-horizontal px-1 *:text-black gap-5 items-center">
+            {li}
+            {user ? (
+              <Link className="flex items-center gap-2">
+                <span>
+                  <img
+                    src={user.photoURL}
+                    className="h-10 w-10 object-cover rounded-xl"
+                  />
+                </span>
+                <button
+                  onClick={logout}
+                  className="bg-transparent hover:bg-white duration-300 text-2xl gap-2 text-blue-500 flex items-center px-3 py-2 border border-blue-500 rounded-xl"
+                  type="button"
+                >
+                  {" "}
+                  <span className="text-base">Logout</span>{" "}
+                </button>
+              </Link>
+            ) : (
+              <Link to="/login">
+                <button
+                  className="bg-transparent hover:bg-white duration-300 text-2xl gap-2 text-blue-500 flex items-center px-3 py-2 border border-blue-500 rounded-xl"
+                  type="button"
+                >
+                  <PiUserCircleLight /> <span className="text-base">Login</span>{" "}
+                </button>
+              </Link>
+            )}
+          </ul>
         </div>
-      </Navbar>
-      <Navbar fluid rounded className=" md:hidden block">
-        <NavbarBrand href="/">
-          <img src={logo} className="mr-3 h-6 sm:h-9" alt="Staffly" />
-          <span className="font-head text-xl font-semibold dark:text-white">
-            Staffly
-          </span>
-        </NavbarBrand>
-        <div className="flex md:order-2">
-          <Button>Get started</Button>
-          <NavbarToggle />
-        </div>
-        <NavbarCollapse>
-          <NavbarLink href="#" active>
-            Home
-          </NavbarLink>
-          {li}
-        </NavbarCollapse>
-      </Navbar>
+      </div>
     </div>
   );
 };

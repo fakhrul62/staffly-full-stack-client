@@ -6,6 +6,9 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
     flowbite.content(),
   ],
+  daisyui: {
+    themes: ["light"],
+  },
   theme: {
     extend: {
       fontFamily: {
@@ -15,5 +18,5 @@ export default {
       },
     },
   },
-  plugins: [flowbite.plugin(),],
+  plugins: [require('daisyui'),flowbite.plugin(),],
 }

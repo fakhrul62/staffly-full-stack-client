@@ -3,7 +3,7 @@ import Header from "../components/Header";
 
 const Root = () => {
     return (
-        <div className="p-5">
+        <div className="px-5 pb-5 pt-24">
             <Header></Header>
             <Outlet></Outlet>
 
