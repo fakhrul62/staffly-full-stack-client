@@ -3,51 +3,35 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { FaBarsStaggered } from "react-icons/fa6";
 import { PiUserCircleLight } from "react-icons/pi";
 import useAuth from "../hooks/useAuth";
-import useAdmin from "../hooks/useAdmin";
 import logo from "../assets/logo.png";
+import useRole from "../hooks/useRole";
 
 const Header = () => {
   const { user, logOut } = useAuth();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const location = useLocation();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 100) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const [role, isRoleLoading ] = useRole();
   const li = (
     <>
       <NavLink to="/">Home</NavLink>
       <NavLink to="/contact">Contact</NavLink>
-      {user && (
+      {user && role?.admin && (
         <>
           <NavLink to="/profile">Profile</NavLink>
           <NavLink to="/dashboard/home">Dashboard</NavLink>
         </>
       )}
-      {/* {user && (
-        
-          isAdmin ? (
-            <>
-            <NavLink to="/profile">Profile</NavLink>
-            <NavLink to="/dashboard/home">Dashboard</NavLink></>
-          ) :
-          (
-            <>
-            <NavLink to="/profile">Profile</NavLink>
-            <NavLink to="/dashboard/user-home">Dashboard</NavLink></>
-          )
-
-      )
-      } */}
+      {user && role?.hr && (
+        <>
+          <NavLink to="/profile">Profile</NavLink>
+          <NavLink to="/dashboard/hr-home">Dashboard</NavLink>
+        </>
+      )}
+      {user && role?.employee && (
+        <>
+          <NavLink to="/profile">Profile</NavLink>
+          <NavLink to="/dashboard/user-home">Dashboard</NavLink>
+        </>
+      )}
+      
     </>
   );
   const logout = () => {

@@ -1,0 +1,29 @@
+import { useQuery } from "@tanstack/react-query";
+import useAuth from "./useAuth";
+import useAxiosSecure from "./useAxiosSecure";
+
+const useRole = () => {
+  const { user, loading } = useAuth();
+  const axiosSecure = useAxiosSecure();
+  const { data: role, isPending: isRoleLoading } = useQuery({
+    queryKey: user?.email ? [user.email, "role"] : [],
+    enabled: !!user?.email && !loading,
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/users/role/${user.email}`);
+      return res.data?.role;
+    },
+  });
+  return [role, isRoleLoading];
+};
+
+export default useRole;
+
+
+// const { data: role, isPending: isRoleLoading } = useQuery({
+//     queryKey: user?.email ? [user.email, "role"] : [],
+//     enabled: !!user?.email && !loading,
+//     queryFn: async () => {
+//       const res = await axiosSecure.get(`/users/admin/${user.email}`); // Update with the correct path
+//       return res.data; // You can now handle admin, hr, employee data here
+//     },
+//   });

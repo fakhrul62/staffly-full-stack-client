@@ -8,7 +8,7 @@ import {
   signOut,
 } from "firebase/auth";
 import auth from "./firebase.config";
-import axios from "axios";
+import useAxiosPublic from "../hooks/useAxiosPublic";
 
 export const AuthContext = createContext(null);
 const googleProvider = new GoogleAuthProvider();
@@ -16,6 +16,7 @@ const AuthProvider = ({ children }) => {
   //
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const axiosPublic = useAxiosPublic();
   //create user
   const createUser = (email, password) => {
     setLoading(true);
@@ -36,31 +37,28 @@ const AuthProvider = ({ children }) => {
   };
   //observe onAuth state change
   useEffect(() => {
-    const unSubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      //console.log("Observing Current user: ", currentUser);
-      // const user = { email: currentUser?.email };
-      // if (currentUser?.email) {
-      //   axios
-      //     .post("http://localhost:5000/jwt", user, { withCredentials: true })
-      //     .then((res) => {
-      //       console.log("login token", res.data);
-      //       setLoading(false);
-      //     });
-      // } else {
-      //   axios
-      //     .post("http://localhost:5000/jwt/logout", {}, { withCredentials: true })
-      //     .then((res) => {
-      //       console.log("logout", res.data);
-      //       setLoading(false);
-      //     });
-      // }
-      setLoading(false);
+      if(currentUser){
+        const userInfo = {email: currentUser.email};
+        axiosPublic.post("/jwt", userInfo)
+        .then(res=>{
+          if(res.data.token){
+            localStorage.setItem("access-token", res.data.token);
+            setLoading(false);
+          }
+        })
+      }
+      else{
+        localStorage.removeItem("access-token");
+        setLoading(false);
+      }
+      // console.log("Obsering Cuurent User", currentUser);
     });
     return () => {
-      unSubscribe();
+      return unsubscribe();
     };
-  }, []);
+  }, [axiosPublic]);
 
 
   const userInfo = {

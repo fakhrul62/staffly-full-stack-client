@@ -17,6 +17,42 @@ const Register = () => {
   const [passType, setpassType] = useState(true);
   const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
+  const [salary, setSalary] = useState("");
+  const [role, setRole] = useState("");
+  const [designationDisabled, setDesignationDisabled] = useState(false);
+  const [fixedSalary, setFixedSalary] = useState(100000);
+  // Salary mapping based on designation
+  const salaryData = {
+    "Sales Assistant": 37500,
+    "Social Media Executive": 45000,
+    "Digital Marketer": 55000,
+    "Marketing Coordinator": 49000,
+    "Content Marketing Specialist": 57500,
+    "SEO Specialist": 65000,
+    "Brand Manager": 80000,
+    "PPC Manager": 72500,
+    "E-commerce Manager": 67500,
+    "Affiliate Marketing Manager": 75000,
+  };
+  //Handle Role Change
+  const handleRoleChange = (e) => {
+    const selectedRole = e.target.value;
+    setRole(selectedRole);
+
+    if (selectedRole === "hr") {
+      setDesignationDisabled(true); // Disable designation
+      setSalary(fixedSalary); // Set fixed salary for HR
+    } else {
+      setDesignationDisabled(false); // Enable designation
+      setSalary(""); // Clear the salary when not HR
+    }
+  };
+
+  // Handle designation change
+  const handleDesignationChange = (e) => {
+    const selectedDesignation = e.target.value;
+    setSalary(salaryData[selectedDesignation] || ""); // Set salary based on designation
+  };
   ///
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -25,6 +61,9 @@ const Register = () => {
     const email = form.email.value;
     const imgData = form.photo.files[0];
     const role = form.role.value;
+    const designation = form.designation.value;
+    const salary = parseInt(form.salary.value);
+    const bank = form.bank.value;
     const password = form.password.value;
 
     const formData = new FormData();
@@ -79,6 +118,9 @@ const Register = () => {
               password: password,
               photoURL: photoURL,
               role: role,
+              designation: designation,
+              salary: salary,
+              bank: bank,
             };
             axiosPublic.post("/users", userInfo).then((res) => {
               if (res.data.insertedId) {
@@ -132,7 +174,10 @@ const Register = () => {
         </h2>
         <div className="gap-5">
           <div className="mb-20">
-            <form className="card-body font-body" onSubmit={handleSignUp}>
+            <form
+              className="card-body font-body grid grid-cols-2"
+              onSubmit={handleSignUp}
+            >
               <div className="form-control">
                 <label className="label">
                   <span className="label-text">Name</span>
@@ -171,24 +216,73 @@ const Register = () => {
                 />
               </div>
               <div className="form-control">
-                <label className="form-control w-full ">
-                  <div className="label">
-                    <span className="label-text">Role</span>
-                  </div>
-                  <select
-                    placeholder="Role"
-                    name="role"
-                    required
-                    className="input input-bordered w-full"
-                    defaultValue=""
-                  >
-                    <option disabled value="">
-                      Select
-                    </option>
-                    <option value="hr">HR</option>
-                    <option value="salad">Employee</option>
-                  </select>
+                <label className="label">
+                  <span className="label-text">Role</span>
                 </label>
+                <select
+                  name="role"
+                  required
+                  className="input input-bordered w-full"
+                  defaultValue=""
+                  onChange={handleRoleChange}
+                >
+                  <option disabled value="">
+                    Select
+                  </option>
+                  <option value="hr">HR</option>
+                  <option value="employee">Employee</option>
+                </select>
+              </div>
+
+              {/* Designation select */}
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Designation</span>
+                </label>
+                <select
+                  name="designation"
+                  required
+                  className="input input-bordered w-full"
+                  defaultValue=""
+                  onChange={handleDesignationChange}
+                  disabled={designationDisabled}
+                >
+                  <option disabled value="">
+                    Select
+                  </option>
+                  {Object.keys(salaryData).map((designation) => (
+                    <option key={designation} value={designation}>
+                      {designation}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Salary input */}
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Salary</span>
+                </label>
+                <input
+                  type="text"
+                  name="salary"
+                  className="input input-bordered"
+                  required
+                  readOnly
+                  value={role === "hr" ? fixedSalary : salary}
+                />
+              </div>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Bank A/C No.</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Bank account number"
+                  name="bank"
+                  className="input input-bordered"
+                  required
+                />
               </div>
               <div className="form-control">
                 <label className="label">
@@ -221,7 +315,7 @@ const Register = () => {
                   )}
                 </div>
               </div>
-              <div className="form-control mt-6">
+              <div className="form-control col-span-2 mt-6">
                 <button className="btn  bg-blue-500 hover:bg-zinc-300 border border-zinc-300 hover:border-zinc-400 text-white hover:text-black duration-300 font-body">
                   Sign Up
                 </button>
