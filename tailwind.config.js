@@ -15,6 +15,7 @@ export default {
         "head": ["Montserrat, serif"],
         "body": ["Inter, serif"],
         "chivo": ["Chivo, serif"],
+        "bebas": ["Bebas Neue, serif"],
       },
     },
   },

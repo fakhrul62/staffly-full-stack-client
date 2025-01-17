@@ -28,7 +28,7 @@ const Header = () => {
       {user && role?.employee && (
         <>
           <NavLink to="/profile">Profile</NavLink>
-          <NavLink to="/dashboard/user-home">Dashboard</NavLink>
+          <NavLink to="/dashboard/work-sheet">Dashboard</NavLink>
         </>
       )}
       
@@ -63,7 +63,7 @@ const Header = () => {
           </Link>
         </div>
         <div className="navbar-end">
-          <ul className="menu menu-horizontal px-1 *:text-black gap-5 items-center">
+          <ul className="menu menu-horizontal px-1 *:text-black font-medium gap-5 items-center">
             {li}
             {user ? (
               <Link className="flex items-center gap-2">

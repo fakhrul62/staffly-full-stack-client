@@ -9,6 +9,8 @@ import Profile from "../pages/Profile";
 import AdminHome from "../pages/Dashboard/ADminHome";
 import HrHome from "../pages/Dashboard/HrHome";
 import EmployeeHome from "../pages/Dashboard/EmployeeHome";
+import Dashboard from "./Dashboard";
+import PaymentHistory from "../pages/Dashboard/PaymentHistory";
 
 const Router = createBrowserRouter([
   {
@@ -41,6 +43,16 @@ const Router = createBrowserRouter([
           </PrivateRoute>
         ),
       },
+    ],
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <PrivateRoute>
+        <Dashboard></Dashboard>
+      </PrivateRoute>
+    ),
+    children: [
       //dashboard admin
       {
         path: "/dashboard/home",
@@ -61,10 +73,18 @@ const Router = createBrowserRouter([
       },
       //dashboard employee
       {
-        path: "/dashboard/user-home",
+        path: "/dashboard/work-sheet",
         element: (
           <PrivateRoute>
             <EmployeeHome></EmployeeHome>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/dashboard/payment-history",
+        element: (
+          <PrivateRoute>
+            <PaymentHistory></PaymentHistory>
           </PrivateRoute>
         ),
       },

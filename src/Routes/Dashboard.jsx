@@ -1,20 +1,28 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { BsCart4 } from "react-icons/bs";
-import { IoCalendarOutline, IoBookmarksOutline, IoExitOutline  } from "react-icons/io5";
+import logo from "../assets/logo.png";
+import {
+  IoCalendarOutline,
+  IoBookmarksOutline,
+  IoExitOutline,
+} from "react-icons/io5";
 import { MdOutlineShoppingBag } from "react-icons/md";
 import { PiMoneyWavy, PiQuotes } from "react-icons/pi";
-import { HiArrowLeftStartOnRectangle, HiOutlineUserGroup } from "react-icons/hi2";
+import {
+  HiArrowLeftStartOnRectangle,
+  HiOutlineUserGroup,
+} from "react-icons/hi2";
 import "../css/Dashboard.css";
 import useAuth from "../hooks/useAuth";
 import useCart from "../hooks/useCart";
-import useAdmin from "../hooks/useAdmin";
+import useRole from "../hooks/useRole";
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const [cart] = useCart();
 
-  const [isAdmin] = useAdmin();
+  const [role, isRoleLoading ] = useRole();
   const logOut = () => {
     logout()
       .then(() => console.log("Logged out Successfully"))
@@ -27,21 +35,17 @@ const Dashboard = () => {
         <div className="w-80 min-h-screen bg-zinc-900 flex flex-col justify-between fixed top-0">
           <div>
             <div className="p-6">
-              <Link to="/" className="flex gap-2 items-center">
+              <Link className="flex gap-2 items-center" to="/">
                 {/* <span className="w-12"><Lottie animationData={logo} loop={true} /></span> */}
-                <span className="flex flex-col -space-y-5 justify-center">
-                  <span className="logo-1 text-2xl text-white relative z-20">
-                    Rice & Spice
-                  </span>
-                  <span className="logo-2 text-5xl text-amber-400 z-10`">
-                    House
-                  </span>{" "}
-                </span>
+                <img src={logo} className="mr-3 h-6 sm:h-9" alt="Staffly" />
+                <span className="font-body text-xl font-semibold text-white ">
+                  Staffly
+                </span>{" "}
               </Link>
             </div>
             <div className="p-4">
-              <ul className="dash-nav *:text-white hover:*:text-zinc-950 hover:*:bg-amber-400 *:rounded-lg *:py-2 *:px-4 *:mb-2 *:flex *:items-center *:gap-2">
-                {isAdmin ? (
+              <ul className="dash-nav *:text-white hover:*:text-zinc-950 hover:*:bg-blue-400 *:rounded-lg *:py-2 *:px-4 *:mb-2 *:flex *:items-center *:gap-2">
+                {role?.admin && (
                   <>
                     <NavLink to="/dashboard/home" end>
                       <LuLayoutDashboard />
@@ -68,40 +72,45 @@ const Dashboard = () => {
                       All Users
                     </NavLink>
                   </>
-                ) : (
+                )}
+                {role?.hr && (
                   <>
-                    <NavLink to="/dashboard/user-home" end>
+                    <NavLink to="/dashboard/home" end>
                       <LuLayoutDashboard />
-                      Users Dashboard
+                      HR Dashboard
                     </NavLink>
 
-                    <NavLink to="/dashboard/cart">
+                    <NavLink to="/dashboard/add-item">
                       <BsCart4 />
-                      My Cart ({cart.length})
+                      Add Items
                     </NavLink>
 
-                    <NavLink to="/dashboard/reservation">
+                    <NavLink to="/dashboard/manage-items">
                       <IoCalendarOutline />
-                      Reservation
-                    </NavLink>
-                    <NavLink to="/dashboard/payment-history">
-                      <PiMoneyWavy  />
-                      Payment History
+                      Manage Items
                     </NavLink>
 
-                    <NavLink to="/dashboard/review">
-                      <PiQuotes />
-                      Add a Review
-                    </NavLink>
-
-                    <NavLink to="/dashboard/my-bookings">
+                    <NavLink to="/dashboard/manage-bookings">
                       <IoBookmarksOutline />
-                      My Bookings
+                      Manage Bookings
                     </NavLink>
 
-                    <NavLink className="" to="/order">
-                      <MdOutlineShoppingBag />
-                      Order Now
+                    <NavLink to="/dashboard/all-users">
+                      <HiOutlineUserGroup />
+                      All Users
+                    </NavLink>
+                  </>
+                )}
+                {role?.employee && (
+                  <>
+                    <NavLink to="/dashboard/work-sheet" end>
+                      <LuLayoutDashboard />
+                      Work Sheet
+                    </NavLink>
+
+                    <NavLink to="/dashboard/payment-history">
+                      <BsCart4 />
+                      Payment History
                     </NavLink>
                   </>
                 )}
@@ -124,7 +133,12 @@ const Dashboard = () => {
                 <h2 className="text-sm text-zinc-300">{user.email}</h2>
               </div>
             </div>
-            <button type="button" className="text-white tooltip" data-tip="Logout" onClick={logOut}>
+            <button
+              type="button"
+              className="text-white tooltip"
+              data-tip="Logout"
+              onClick={logOut}
+            >
               <IoExitOutline />
             </button>
           </div>
