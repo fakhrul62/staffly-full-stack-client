@@ -8,7 +8,6 @@ import logo from "../assets/logo.png";
 
 const Header = () => {
   const { user, logOut } = useAuth();
-  // const [isAdmin] = useAdmin();
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
 
