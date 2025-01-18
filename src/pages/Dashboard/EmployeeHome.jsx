@@ -7,12 +7,22 @@ import { GoTasklist } from "react-icons/go";
 import DatePicker from "react-datepicker";
 import { useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
+import { useQuery } from "@tanstack/react-query";
 
 const EmployeeHome = () => {
   const { user } = useAuth();
   const [startDate, setStartDate] = useState(new Date());
+  const axiosSecure = useAxiosSecure();
 
-  const handleAdd = (e) => {
+  const { data: tasks = [], refetch } = useQuery({
+    queryKey: ["tasks", user.email],
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/tasks/${user.email}`);
+      return res.data;
+    },
+  });
+  const handleAdd = async (e) => {
     e.preventDefault();
     const form = e.target;
     const task = form.task.value;
@@ -20,8 +30,13 @@ const EmployeeHome = () => {
     const date = startDate;
     const user_name = user?.displayName;
     const user_email = user?.email;
-    console.log(task, hour, date, user_name, user_email);
+    const newTask = { task, hour, date, user_name, user_email };
+    const res = await axiosSecure.post("/tasks", newTask);
+    if (res.data.insertedId) {
+      refetch();
+    }
   };
+
   return (
     <div>
       <div>
@@ -32,12 +47,12 @@ const EmployeeHome = () => {
           </span>
         </h2>
       </div>
-      <div className="mt-12">
+      <div className="mt-12 sticky top-5">
         <form
           className="font-body flex items-center gap-2 justify-between p-2 bg-zinc-300 rounded-lg"
           onSubmit={handleAdd}
         >
-          <div className="flex items-center grow gap-2 input border-transparent">
+          <div className="flex items-center grow gap-2 input border-transparent focus:outline-none focus:ring-0 focus:border-transparent">
             <GoTasklist />
             <select
               name="task"
@@ -60,7 +75,7 @@ const EmployeeHome = () => {
             </select>
           </div>
 
-          <div className="flex items-center gap-2 input border-transparent">
+          <div className="flex items-center gap-2 input border-transparent focus:outline-none focus:ring-0 focus:border-transparent">
             <LuClock2 />
             <input
               type="number"
@@ -70,7 +85,7 @@ const EmployeeHome = () => {
               required
             />
           </div>
-          <div className="flex items-center gap-2 input border-transparent">
+          <div className="flex items-center gap-2 input border-transparent focus:outline-none focus:ring-0 focus:border-transparent">
             <IoCalendarOutline />
             {/* <input
               type="text"
@@ -80,14 +95,14 @@ const EmployeeHome = () => {
               defaultValue={today}
             /> */}
             <DatePicker
-              className="border-transparent"
+              className="border-transparent focus:outline-none focus:ring-0 focus:border-none"
               selected={startDate}
               onChange={(date) => setStartDate(date)}
             />
           </div>
           <div>
-            <button className="btn bg-blue-500 hover:bg-zinc-300 border border-zinc-300 hover:border-zinc-400 text-white hover:text-black duration-300 font-body">
-              Add
+            <button className="btn text-xl bg-blue-500 hover:bg-zinc-300 border border-zinc-300 hover:border-zinc-400 text-white hover:text-black duration-300 font-body">
+              +
             </button>
           </div>
         </form>
@@ -133,34 +148,36 @@ const EmployeeHome = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                        1
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                        John Brown
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                        45
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                        New York No. 1 Lake Park
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium space-x-2">
-                        <button
-                          type="button"
-                          className="hover:bg-green-500 hover:text-white bg-green-200 duration-300 gap-2 text-green-500 px-3 py-3 border border-green-500 rounded-lg"
-                        >
-                          <HiOutlinePencilSquare />
-                        </button>
-                        <button
-                          type="button"
-                          className="hover:bg-red-500 hover:text-white bg-red-200 duration-300 gap-2 text-red-500 px-3 py-3 border border-red-500 rounded-lg"
-                        >
-                          <FaRegTrashCan />
-                        </button>
-                      </td>
-                    </tr>
+                    {tasks.map((item, idx) => (
+                      <tr key={item._id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                          {idx + 1}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                          {item.task}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                          {item.hour}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                        {new Date(item.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium space-x-2">
+                          <button
+                            type="button"
+                            className="hover:bg-green-500 hover:text-white bg-green-200 duration-300 gap-2 text-green-500 px-3 py-3 border border-green-500 rounded-lg"
+                          >
+                            <HiOutlinePencilSquare />
+                          </button>
+                          <button
+                            type="button"
+                            className="hover:bg-red-500 hover:text-white bg-red-200 duration-300 gap-2 text-red-500 px-3 py-3 border border-red-500 rounded-lg"
+                          >
+                            <FaRegTrashCan />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>

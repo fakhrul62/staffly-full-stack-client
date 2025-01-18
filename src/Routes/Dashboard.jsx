@@ -18,11 +18,11 @@ import useAuth from "../hooks/useAuth";
 import useRole from "../hooks/useRole";
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, logOut } = useAuth();
 
   const [role, isRoleLoading ] = useRole();
-  const logOut = () => {
-    logout()
+  const logout = () => {
+    logOut()
       .then(() => console.log("Logged out Successfully"))
       .catch((error) => console.log(error.message));
   };
@@ -135,7 +135,7 @@ const Dashboard = () => {
               type="button"
               className="text-white tooltip"
               data-tip="Logout"
-              onClick={logOut}
+              onClick={logout}
             >
               <IoExitOutline />
             </button>
