@@ -65,6 +65,7 @@ const Register = () => {
     const salary = parseInt(form.salary.value);
     const bank = form.bank.value;
     const password = form.password.value;
+    const isVerified = false;
 
     const formData = new FormData();
     formData.append("image", imgData);
@@ -121,6 +122,7 @@ const Register = () => {
               designation: designation,
               salary: salary,
               bank: bank,
+              isVerified: isVerified,
             };
             axiosPublic.post("/users", userInfo).then((res) => {
               if (res.data.insertedId) {

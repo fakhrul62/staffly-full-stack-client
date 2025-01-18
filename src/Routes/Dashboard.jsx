@@ -7,8 +7,6 @@ import {
   IoBookmarksOutline,
   IoExitOutline,
 } from "react-icons/io5";
-import { MdOutlineShoppingBag } from "react-icons/md";
-import { PiMoneyWavy, PiQuotes } from "react-icons/pi";
 import {
   HiArrowLeftStartOnRectangle,
   HiOutlineUserGroup,
@@ -19,13 +17,13 @@ import useRole from "../hooks/useRole";
 
 const Dashboard = () => {
   const { user, logOut } = useAuth();
-
   const [role, isRoleLoading ] = useRole();
   const logout = () => {
     logOut()
       .then(() => console.log("Logged out Successfully"))
       .catch((error) => console.log(error.message));
   };
+  const activeColor = "text-white bg-red-400";
 
   return (
     <div className="flex">
@@ -73,30 +71,12 @@ const Dashboard = () => {
                 )}
                 {role?.hr && (
                   <>
-                    <NavLink to="/dashboard/home" end>
+                    <NavLink to="/dashboard/hr-home" end>
                       <LuLayoutDashboard />
                       HR Dashboard
                     </NavLink>
 
-                    <NavLink to="/dashboard/add-item">
-                      <BsCart4 />
-                      Add Items
-                    </NavLink>
-
-                    <NavLink to="/dashboard/manage-items">
-                      <IoCalendarOutline />
-                      Manage Items
-                    </NavLink>
-
-                    <NavLink to="/dashboard/manage-bookings">
-                      <IoBookmarksOutline />
-                      Manage Bookings
-                    </NavLink>
-
-                    <NavLink to="/dashboard/all-users">
-                      <HiOutlineUserGroup />
-                      All Users
-                    </NavLink>
+                    
                   </>
                 )}
                 {role?.employee && (

@@ -18,6 +18,7 @@ const GoogleLogin = ({ text }) => {
             designation: "Sales Assistant",
             salary: 37500,
             bank: "AJ675HG978",
+            isVerified: false,
           })
           .then((res) => {
             console.log(res.data);
