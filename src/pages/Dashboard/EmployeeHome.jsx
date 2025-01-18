@@ -9,11 +9,13 @@ import { useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
+import Swal from "sweetalert2";
 
 const EmployeeHome = () => {
   const { user } = useAuth();
-  const [startDate, setStartDate] = useState(new Date());
+
   const axiosSecure = useAxiosSecure();
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const { data: tasks = [], refetch } = useQuery({
     queryKey: ["tasks", user.email],
@@ -27,14 +29,87 @@ const EmployeeHome = () => {
     const form = e.target;
     const task = form.task.value;
     const hour = parseInt(form.hour.value);
-    const date = startDate;
+    const date = selectedTask ? selectedTask.date : new Date(); 
     const user_name = user?.displayName;
     const user_email = user?.email;
     const newTask = { task, hour, date, user_name, user_email };
     const res = await axiosSecure.post("/tasks", newTask);
     if (res.data.insertedId) {
       refetch();
+      Swal.fire({
+        title: "Task Added!",
+        icon: "success",
+        iconColor: "#76a9fa ",
+        confirmButtonText: "Okay",
+        customClass: {
+          confirmButton: "bg-blue-500 text-white font-body px-32",
+          title: "font-head font-bold text-2xls",
+        },
+      });
     }
+  };
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    // Extract form data
+    const form = e.target;
+    const updatedTask = form.task.value;
+    const updatedHour = parseInt(form.hour.value);
+    const updatedDate = selectedTask.date;
+
+    const updatedTaskData = {
+      task: updatedTask,
+      hour: updatedHour,
+      date: updatedDate,
+    };
+    // Send request to update the task
+    const res = await axiosSecure.patch(
+      `/tasks/${selectedTask._id}`,
+      updatedTaskData
+    );
+    console.log(res.data);
+
+    if (res.data.modifiedCount > 0) {
+      refetch(); // Refetch tasks to update the UI
+      Swal.fire({
+        title: "Task Updated!",
+        icon: "success",
+        iconColor: "#76a9fa ",
+        confirmButtonText: "Okay",
+        customClass: {
+          confirmButton: "bg-blue-500 text-white font-body px-32",
+          title: "font-head font-bold text-2xls",
+        },
+      });
+    }
+  };
+  const handleDelete = (item) => {
+    Swal.fire({
+      title: "Are you sure?",
+      icon: "warning",
+      iconColor: "#76a9fa",
+      showCancelButton: true,
+      cancelButtonColor: "#76a9fa",
+      confirmButtonText: "Yes, delete it!",
+      customClass: {
+        confirmButton: "bg-blue-500 text-white font-body px-32",
+        title: "font-head font-bold text-2xls",
+      },
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const res = await axiosSecure.delete(`/tasks/${item._id}`);
+        refetch();
+        Swal.fire({
+          title: "Deleted!",
+          iconColor: "#76a9fa",
+          text: "Item has been removed from the database.",
+          icon: "success",
+          customClass: {
+            confirmButton: "bg-blue-500 text-white font-body px-32",
+            title: "font-head font-bold text-2xls",
+          },
+        });
+      }
+    });
   };
 
   return (
@@ -87,17 +162,15 @@ const EmployeeHome = () => {
           </div>
           <div className="flex items-center gap-2 input border-transparent focus:outline-none focus:ring-0 focus:border-transparent">
             <IoCalendarOutline />
-            {/* <input
-              type="text"
-              placeholder="Date"
-              name="date"
-              className="input border-transparent grow focus:outline-none focus:ring-0 focus:border-transparent"
-              defaultValue={today}
-            /> */}
             <DatePicker
               className="border-transparent focus:outline-none focus:ring-0 focus:border-none"
-              selected={startDate}
-              onChange={(date) => setStartDate(date)}
+              selected={selectedTask ? new Date(selectedTask.date) : new Date()}
+              onChange={(date) =>
+                setSelectedTask((prev) => ({
+                  ...prev,
+                  date: date.toISOString(), // Update the date
+                }))
+              }
             />
           </div>
           <div>
@@ -160,16 +233,113 @@ const EmployeeHome = () => {
                           {item.hour}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                        {new Date(item.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                          {new Date(item.date).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium space-x-2">
                           <button
+                            onClick={() => {
+                              setSelectedTask(item);
+                              document.getElementById("my_modal_5").showModal();
+                            }}
                             type="button"
                             className="hover:bg-green-500 hover:text-white bg-green-200 duration-300 gap-2 text-green-500 px-3 py-3 border border-green-500 rounded-lg"
                           >
                             <HiOutlinePencilSquare />
                           </button>
+                          <dialog
+                            id="my_modal_5"
+                            className="modal z-0 modal-bottom sm:modal-middle"
+                          >
+                            <div className="modal-box">
+                              <form
+                                className="font-body space-y-2 p-2 bg-zinc-300 rounded-lg"
+                                onSubmit={handleUpdate}
+                              >
+                                <div className="flex items-center grow gap-2 input border-transparent focus:outline-none focus:ring-0 focus:border-transparent">
+                                  <GoTasklist />
+                                  <select
+                                    name="task"
+                                    className="w-full input border-transparent focus:outline-none focus:ring-0 focus:border-transparent"
+                                    required
+                                    value={selectedTask?.task || ""}
+                                    onChange={(e) =>
+                                      setSelectedTask((prev) => ({
+                                        ...prev,
+                                        task: e.target.value,
+                                      }))
+                                    }
+                                  >
+                                    <option value="" disabled>
+                                      Select a task
+                                    </option>
+                                    <option value="Sales">Sales</option>
+                                    <option value="Support">Support</option>
+                                    <option value="Content">Content</option>
+                                    <option value="Paper-work">
+                                      Paper-work
+                                    </option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Development">
+                                      Development
+                                    </option>
+                                    <option value="Design">Design</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Research">Research</option>
+                                  </select>
+                                </div>
+
+                                <div className="flex items-center gap-2 input border-transparent focus:outline-none focus:ring-0 focus:border-transparent">
+                                  <LuClock2 />
+                                  <input
+                                    type="number"
+                                    placeholder="Hours worked"
+                                    name="hour"
+                                    className="input border-transparent grow focus:outline-none focus:ring-0 focus:border-transparent"
+                                    required
+                                    value={selectedTask?.hour || ""}
+                                    onChange={(e) =>
+                                      setSelectedTask((prev) => ({
+                                        ...prev,
+                                        hour: e.target.value,
+                                      }))
+                                    }
+                                  />
+                                </div>
+
+                                <div className="flex items-center gap-2 input border-transparent focus:outline-none focus:ring-0 focus:border-transparent">
+                                  <IoCalendarOutline />
+                                  <DatePicker
+                                    className="border-transparent focus:outline-none focus:ring-0 focus:border-none"
+                                    selected={selectedTask?.date || new Date()} // Make sure it's using selectedTask's date
+                                    onChange={(date) =>
+                                      setSelectedTask((prev) => ({
+                                        ...prev,
+                                        date,
+                                      }))
+                                    }
+                                  />
+                                </div>
+
+                                <div>
+                                  <button className="btn w-full bg-blue-500 hover:bg-zinc-300 border border-zinc-300 hover:border-zinc-400 text-white hover:text-black duration-300 font-body">
+                                    Update Task
+                                  </button>
+                                </div>
+                              </form>
+                              <div className="modal-action">
+                                <form method="dialog">
+                                  <button className="btn">Close</button>
+                                </form>
+                              </div>
+                            </div>
+                          </dialog>
+
                           <button
+                            onClick={() => handleDelete(item)}
                             type="button"
                             className="hover:bg-red-500 hover:text-white bg-red-200 duration-300 gap-2 text-red-500 px-3 py-3 border border-red-500 rounded-lg"
                           >
