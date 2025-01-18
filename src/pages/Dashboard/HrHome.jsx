@@ -1,20 +1,38 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
 import { RxCross2 } from "react-icons/rx";
 import { IoCheckmarkSharp } from "react-icons/io5";
+import Swal from "sweetalert2";
 
 const HrHome = () => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
-  const { data: users = [] } = useQuery({
+  const { data: users = [], refetch } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
       const res = await axiosSecure.get(`/employees`);
       return res.data;
     },
   });
+  const handleToggleVerified = async (id, currentStatus) => {
+    const user = { isVerified: !currentStatus };
+    const res = await axiosSecure.patch(`/users/${id}`, user);
+    if (res.data.modifiedCount > 0) {
+      refetch();
+      Swal.fire({
+        title: "Status Updated!",
+        icon: "success",
+        iconColor: "#76a9fa ",
+        confirmButtonText: "Okay",
+        customClass: {
+          confirmButton: "bg-blue-500 text-white font-body px-32",
+          title: "font-head font-bold text-2xls",
+        },
+      });
+    }
+  };
   return (
     <div>
       <div>
@@ -75,7 +93,6 @@ const HrHome = () => {
                       >
                         Action
                       </th>
-                      
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -91,7 +108,18 @@ const HrHome = () => {
                           {item.email}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-800">
-                          {item.isVerified ? <IoCheckmarkSharp  className="text-white bg-green-400 p-2 rounded-full text-4xl" /> : <RxCross2 className="text-white bg-red-400 p-2 rounded-full text-4xl" />}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleToggleVerified(item._id, item.isVerified)
+                            }
+                          >
+                            {item.isVerified ? (
+                              <IoCheckmarkSharp className="text-white bg-green-400 p-2 rounded-full text-4xl" />
+                            ) : (
+                              <RxCross2 className="text-white bg-red-400 p-2 rounded-full text-4xl" />
+                            )}
+                          </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                           {item.bank}
@@ -99,7 +127,7 @@ const HrHome = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                           ${item.salary}
                         </td>
-                     
+
                         <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium space-x-2">
                           <button
                             type="button"
