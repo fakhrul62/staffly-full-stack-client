@@ -15,12 +15,10 @@ import {
 } from "react-icons/hi2";
 import "../css/Dashboard.css";
 import useAuth from "../hooks/useAuth";
-import useCart from "../hooks/useCart";
 import useRole from "../hooks/useRole";
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
-  const [cart] = useCart();
 
   const [role, isRoleLoading ] = useRole();
   const logOut = () => {

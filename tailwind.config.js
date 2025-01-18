@@ -5,6 +5,7 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
     flowbite.content(),
+    'node_modules/preline/dist/*.js',
   ],
   daisyui: {
     themes: ["light"],
@@ -19,5 +20,6 @@ export default {
       },
     },
   },
-  plugins: [require('daisyui'),flowbite.plugin(),],
+  plugins: [require('daisyui'),flowbite.plugin(),require('preline/plugin'),
+  ],
 }
