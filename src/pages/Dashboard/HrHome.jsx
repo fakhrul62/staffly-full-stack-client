@@ -9,6 +9,8 @@ import Swal from "sweetalert2";
 const HrHome = () => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
   const { data: users = [], refetch } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
@@ -21,9 +23,67 @@ const HrHome = () => {
     const res = await axiosSecure.patch(`/users/${id}`, user);
     if (res.data.modifiedCount > 0) {
       refetch();
+      // Swal.fire({
+      //   title: "Status Updated!",
+      //   icon: "success",
+      //   iconColor: "#76a9fa ",
+      //   confirmButtonText: "Okay",
+      //   customClass: {
+      //     confirmButton: "bg-blue-500 text-white font-body px-32",
+      //     title: "font-head font-bold text-2xls",
+      //   },
+      // });
+    }
+  };
+
+  const handlePayroll = async (e, email) => {
+    e.preventDefault();
+
+    try {
+      // Check if payroll already exists before making a request
+      const { data: existingPayroll } = await axiosSecure.get(
+        `/payrolls/check?employee_email=${email}&month=${month}&year=${year}`
+      );
+
+      if (existingPayroll.exists) {
+        Swal.fire({
+          title: "Payroll for this month has already been requested!!",
+          icon: "error",
+          iconColor: "#76a9fa ",
+          confirmButtonText: "Okay",
+          customClass: {
+            confirmButton: "bg-blue-500 text-white font-body px-32",
+            title: "font-head font-bold text-2xls",
+          },
+        });
+        return;
+      }
+
+      // Proceed with payroll request if no duplicate exists
+      const payroll = {
+        month: parseInt(month),
+        year: parseInt(year),
+        employee_email: email,
+        hr_email: user.email,
+      };
+
+      const res = await axiosSecure.post("/payrolls", payroll);
+      if(res.data.insertedId) {
+        Swal.fire({
+          title: "Payroll request sent successfully!!",
+          icon: "success",
+          iconColor: "#76a9fa ",
+          confirmButtonText: "Okay",
+          customClass: {
+            confirmButton: "bg-blue-500 text-white font-body px-32",
+            title: "font-head font-bold text-2xls",
+          },
+        })
+    }
+    } catch (error) {
       Swal.fire({
-        title: "Status Updated!",
-        icon: "success",
+        title: "Payroll for this month has already been requested!!",
+        icon: "error",
         iconColor: "#76a9fa ",
         confirmButtonText: "Okay",
         customClass: {
@@ -33,6 +93,7 @@ const HrHome = () => {
       });
     }
   };
+
   return (
     <div>
       <div>
@@ -115,9 +176,9 @@ const HrHome = () => {
                             }
                           >
                             {item.isVerified ? (
-                              <IoCheckmarkSharp className="text-white bg-green-400 p-2 rounded-full text-4xl" />
+                              <IoCheckmarkSharp className="text-white bg-green-400 p-2 rounded-full text-4xl duration-300" />
                             ) : (
-                              <RxCross2 className="text-white bg-red-400 p-2 rounded-full text-4xl" />
+                              <RxCross2 className="text-white bg-red-400 p-2 rounded-full text-4xl duration-300" />
                             )}
                           </button>
                         </td>
@@ -130,11 +191,95 @@ const HrHome = () => {
 
                         <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium space-x-2">
                           <button
-                            type="button"
+                            onClick={() => {
+                              document.getElementById("my_modal_5").showModal();
+                            }}
+                            type="button" disabled={!item.isVerified}
                             className="hover:bg-emerald-600 hover:text-white bg-emerald-200 duration-300 gap-2 text-emerald-600 px-3 py-3 border border-emerald-500 rounded-lg"
                           >
                             Pay
                           </button>
+                          <dialog
+                            id="my_modal_5"
+                            className="modal !z-0 modal-bottom sm:modal-middle"
+                          >
+                            <div className="modal-box">
+                              <h2 className="text-center font-bebas uppercase font-bold text-black tracking-wide text-2xl mb-6 mt-3">
+                                Monthly Pay Request
+                              </h2>
+                              <form
+                                className="font-body space-y-2 p-2 bg-zinc-200 rounded-lg"
+                                onSubmit={(e) => {handlePayroll(e, item.email);document
+                                  .getElementById("my_modal_5")
+                                  .close();}}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div className="bg-zinc-300 grow space-y-2 p-2 rounded-lg ">
+                                    <select
+                                      id="month"
+                                      className="w-full  border-transparent focus:outline-none focus:ring-0 focus:border-transparent rounded-lg"
+                                      value={month}
+                                      required
+                                      onChange={(e) => {
+                                        setMonth(e.target.value)
+                                        
+                                      }}
+                                    >
+                                      <option value="">Select Month</option>
+                                      <option value="01">January</option>
+                                      <option value="02">February</option>
+                                      <option value="03">March</option>
+                                      <option value="04">April</option>
+                                      <option value="05">May</option>
+                                      <option value="06">June</option>
+                                      <option value="07">July</option>
+                                      <option value="08">August</option>
+                                      <option value="09">September</option>
+                                      <option value="10">October</option>
+                                      <option value="11">November</option>
+                                      <option value="12">December</option>
+                                    </select>
+                                  </div>
+
+                                  <div className="bg-zinc-300 space-y-2 p-2 rounded-lg">
+                                    <select
+                                      id="year"
+                                      required
+                                      defaultValue=""
+                                      className="w-full border-transparent focus:outline-none focus:ring-0 focus:border-transparent rounded-lg"
+                                      onChange={(e) => setYear(e.target.value)}
+                                    >
+                                      <option value="">Select Year</option>
+                                      {/* Example: You can dynamically create years using a loop */}
+                                      {Array.from({ length: 30 }, (_, i) => {
+                                        const currentYear =
+                                          new Date().getFullYear();
+                                        return (
+                                          <option
+                                            key={i}
+                                            value={currentYear + i}
+                                          >
+                                            {currentYear + i}
+                                          </option>
+                                        );
+                                      })}
+                                    </select>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <button className="btn w-full bg-blue-500 hover:bg-zinc-300 border border-zinc-300 hover:border-zinc-400 text-white hover:text-black duration-300 font-body">
+                                    Request Admin for Pay
+                                  </button>
+                                </div>
+                              </form>
+                              <div className="modal-action">
+                                <form method="dialog">
+                                  <button className="btn">Close</button>
+                                </form>
+                              </div>
+                            </div>
+                          </dialog>
 
                           <button
                             type="button"
