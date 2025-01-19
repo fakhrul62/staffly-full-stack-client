@@ -38,16 +38,15 @@ const HrHome = () => {
     }
   };
 
-  const handlePayroll = async (e, email) => {
+  const handlePayroll = async (e, item) => {
     e.preventDefault();
     const form = e.target;
 
     try {
       // Check if payroll already exists before making a request
       const { data: existingPayroll } = await axiosSecure.get(
-        `/payrolls/check?employee_email=${email}&month=${month}&year=${year}`
+        `/payrolls/check?employee_email=${item.email}&month=${month}&year=${year}`
       );
-
       if (existingPayroll.exists) {
         Swal.fire({
           title: "Payroll for this month has already been requested!!",
@@ -61,13 +60,13 @@ const HrHome = () => {
         });
         return;
       }
-
-      // Proceed with payroll request if no duplicate exists
       const payroll = {
         month: parseInt(month),
         year: parseInt(year),
-        employee_email: email,
+        employee: item,
         hr_email: user.email,
+        payment_date: "",
+        payment_status: "pending",
       };
 
       const res = await axiosSecure.post("/payrolls", payroll);
@@ -86,7 +85,7 @@ const HrHome = () => {
       }
     } catch (error) {
       Swal.fire({
-        title: "Payroll for this month has already been requested!!",
+        title: `${error.message}`,
         icon: "error",
         iconColor: "#76a9fa ",
         confirmButtonText: "Okay",
@@ -218,7 +217,7 @@ const HrHome = () => {
                                 onSubmit={(e) => {
                                   e.preventDefault(); // Prevent default form submission
                                   
-                                  handlePayroll(e, selectedEmployee.email); // Use the selected employee
+                                  handlePayroll(e, selectedEmployee); // Use the selected employee
                                   
                                       document
                                         .getElementById("my_modal_5")
