@@ -11,6 +11,8 @@ const HrHome = () => {
   const axiosSecure = useAxiosSecure();
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+
   const { data: users = [], refetch } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
@@ -38,6 +40,7 @@ const HrHome = () => {
 
   const handlePayroll = async (e, email) => {
     e.preventDefault();
+    const form = e.target;
 
     try {
       // Check if payroll already exists before making a request
@@ -68,7 +71,7 @@ const HrHome = () => {
       };
 
       const res = await axiosSecure.post("/payrolls", payroll);
-      if(res.data.insertedId) {
+      if (res.data.insertedId) {
         Swal.fire({
           title: "Payroll request sent successfully!!",
           icon: "success",
@@ -78,8 +81,9 @@ const HrHome = () => {
             confirmButton: "bg-blue-500 text-white font-body px-32",
             title: "font-head font-bold text-2xls",
           },
-        })
-    }
+        });
+
+      }
     } catch (error) {
       Swal.fire({
         title: "Payroll for this month has already been requested!!",
@@ -192,9 +196,11 @@ const HrHome = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium space-x-2">
                           <button
                             onClick={() => {
+                              setSelectedEmployee(item); // Store the selected employee
                               document.getElementById("my_modal_5").showModal();
                             }}
-                            type="button" disabled={!item.isVerified}
+                            type="button"
+                            disabled={!item.isVerified}
                             className="hover:bg-emerald-600 hover:text-white bg-emerald-200 duration-300 gap-2 text-emerald-600 px-3 py-3 border border-emerald-500 rounded-lg"
                           >
                             Pay
@@ -209,9 +215,15 @@ const HrHome = () => {
                               </h2>
                               <form
                                 className="font-body space-y-2 p-2 bg-zinc-200 rounded-lg"
-                                onSubmit={(e) => {handlePayroll(e, item.email);document
-                                  .getElementById("my_modal_5")
-                                  .close();}}
+                                onSubmit={(e) => {
+                                  e.preventDefault(); // Prevent default form submission
+                                  
+                                  handlePayroll(e, selectedEmployee.email); // Use the selected employee
+                                  
+                                      document
+                                        .getElementById("my_modal_5")
+                                        ?.close();
+                                }}
                               >
                                 <div className="flex items-center gap-2">
                                   <div className="bg-zinc-300 grow space-y-2 p-2 rounded-lg ">
@@ -221,8 +233,7 @@ const HrHome = () => {
                                       value={month}
                                       required
                                       onChange={(e) => {
-                                        setMonth(e.target.value)
-                                        
+                                        setMonth(e.target.value);
                                       }}
                                     >
                                       <option value="">Select Month</option>

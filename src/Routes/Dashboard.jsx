@@ -2,11 +2,8 @@ import { Link, NavLink, Outlet } from "react-router-dom";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { BsCart4 } from "react-icons/bs";
 import logo from "../assets/logo.png";
-import {
-  IoCalendarOutline,
-  IoBookmarksOutline,
-  IoExitOutline,
-} from "react-icons/io5";
+import { CiMoneyCheck1 } from "react-icons/ci";
+import { IoExitOutline } from "react-icons/io5";
 import {
   HiArrowLeftStartOnRectangle,
   HiOutlineUserGroup,
@@ -17,7 +14,7 @@ import useRole from "../hooks/useRole";
 
 const Dashboard = () => {
   const { user, logOut } = useAuth();
-  const [role, isRoleLoading ] = useRole();
+  const [role, isRoleLoading] = useRole();
   const logout = () => {
     logOut()
       .then(() => console.log("Logged out Successfully"))
@@ -48,24 +45,14 @@ const Dashboard = () => {
                       Admin Dashboard
                     </NavLink>
 
-                    <NavLink to="/dashboard/add-item">
-                      <BsCart4 />
-                      Add Items
-                    </NavLink>
-
-                    <NavLink to="/dashboard/manage-items">
-                      <IoCalendarOutline />
-                      Manage Items
-                    </NavLink>
-
-                    <NavLink to="/dashboard/manage-bookings">
-                      <IoBookmarksOutline />
-                      Manage Bookings
-                    </NavLink>
-
-                    <NavLink to="/dashboard/all-users">
+                    <NavLink to="/dashboard/all-employee-list">
                       <HiOutlineUserGroup />
-                      All Users
+                      All Employees
+                    </NavLink>
+
+                    <NavLink to="/dashboard/payroll">
+                      <CiMoneyCheck1 />
+                      Payroll
                     </NavLink>
                   </>
                 )}
@@ -75,8 +62,6 @@ const Dashboard = () => {
                       <LuLayoutDashboard />
                       HR Dashboard
                     </NavLink>
-
-                    
                   </>
                 )}
                 {role?.employee && (

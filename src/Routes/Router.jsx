@@ -11,6 +11,8 @@ import HrHome from "../pages/Dashboard/HrHome";
 import EmployeeHome from "../pages/Dashboard/EmployeeHome";
 import Dashboard from "./Dashboard";
 import PaymentHistory from "../pages/Dashboard/PaymentHistory";
+import AllEmployees from "../pages/Dashboard/AllEmployees";
+import Payroll from "../pages/Dashboard/Payroll";
 
 const Router = createBrowserRouter([
   {
@@ -59,6 +61,22 @@ const Router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <AdminHome></AdminHome>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/dashboard/all-employee-list",
+        element: (
+          <PrivateRoute>
+            <AllEmployees></AllEmployees>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/dashboard/payroll",
+        element: (
+          <PrivateRoute>
+            <Payroll></Payroll>
           </PrivateRoute>
         ),
       },

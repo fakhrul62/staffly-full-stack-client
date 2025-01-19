@@ -65,7 +65,7 @@ const Register = () => {
     const salary = parseInt(form.salary.value);
     const bank = form.bank.value;
     const password = form.password.value;
-    const isVerified = false;
+    const isVerified = role === "hr" ? true : false;
 
     const formData = new FormData();
     formData.append("image", imgData);
