@@ -31,7 +31,7 @@ const Dashboard = () => {
               <Link className="flex gap-2 items-center" to="/">
                 {/* <span className="w-12"><Lottie animationData={logo} loop={true} /></span> */}
                 <img src={logo} className="mr-3 h-6 sm:h-9" alt="Staffly" />
-                <span className="font-body text-xl font-semibold text-white ">
+                <span className="font-bebas text-2xl tracking-widest font-semibold text-white ">
                   Staffly
                 </span>{" "}
               </Link>
@@ -61,6 +61,14 @@ const Dashboard = () => {
                     <NavLink to="/dashboard/hr-home" end>
                       <LuLayoutDashboard />
                       HR Dashboard
+                    </NavLink>
+                    <NavLink to="/dashboard/progress" end>
+                      <LuLayoutDashboard />
+                      Progress
+                    </NavLink>
+                    <NavLink to="/dashboard/hr-payment" end>
+                    <CiMoneyCheck1 />
+                      My Payment
                     </NavLink>
                   </>
                 )}

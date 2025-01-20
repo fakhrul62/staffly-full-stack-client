@@ -13,6 +13,9 @@ import Dashboard from "./Dashboard";
 import PaymentHistory from "../pages/Dashboard/PaymentHistory";
 import AllEmployees from "../pages/Dashboard/AllEmployees";
 import Payroll from "../pages/Dashboard/Payroll";
+import HrPayment from "../pages/Dashboard/HrPayment";
+import Progress from "../pages/Dashboard/Progress";
+import EmployeeDetails from "../pages/Dashboard/EmployeeDetails";
 
 const Router = createBrowserRouter([
   {
@@ -86,6 +89,31 @@ const Router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <HrHome></HrHome>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/dashboard/details/:id",
+        element: (
+          <PrivateRoute>
+            <EmployeeDetails></EmployeeDetails>
+          </PrivateRoute>
+        ),
+        loader: ({params})=> fetch(`http://localhost:5000/employees/${params.id}`)
+      },
+      {
+        path: "/dashboard/progress",
+        element: (
+          <PrivateRoute>
+            <Progress></Progress>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/dashboard/hr-payment",
+        element: (
+          <PrivateRoute>
+            <HrPayment></HrPayment>
           </PrivateRoute>
         ),
       },

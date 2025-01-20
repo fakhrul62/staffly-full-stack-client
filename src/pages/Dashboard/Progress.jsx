@@ -1,112 +1,11 @@
-import React, { useEffect, useState } from "react";
-import useAuth from "../../hooks/useAuth";
-import useAxiosSecure from "../../hooks/useAxiosSecure";
-import { useQuery } from "@tanstack/react-query";
-import { RxCross2 } from "react-icons/rx";
-import { IoCheckmarkSharp } from "react-icons/io5";
-import Swal from "sweetalert2";
-import { Link } from "react-router-dom";
+import React from "react";
 
-const HrHome = () => {
-  const { user } = useAuth();
-  const axiosSecure = useAxiosSecure();
-  const [month, setMonth] = useState("");
-  const [year, setYear] = useState("");
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-
-  const { data: users = [], refetch } = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => {
-      const res = await axiosSecure.get(`/employees`);
-      return res.data;
-    },
-  });
-  const handleToggleVerified = async (id, currentStatus) => {
-    const user = { isVerified: !currentStatus };
-    const res = await axiosSecure.patch(`/users/${id}`, user);
-    if (res.data.modifiedCount > 0) {
-      refetch();
-      // Swal.fire({
-      //   title: "Status Updated!",
-      //   icon: "success",
-      //   iconColor: "#76a9fa ",
-      //   confirmButtonText: "Okay",
-      //   customClass: {
-      //     confirmButton: "bg-blue-500 text-white font-body px-32",
-      //     title: "font-head font-bold text-2xls",
-      //   },
-      // });
-    }
-  };
-  const handlePayroll = async (e, item) => {
-    e.preventDefault();
-    const form = e.target;
-
-    try {
-      // Check if payroll already exists before making a request
-      const { data: existingPayroll } = await axiosSecure.get(
-        `/payrolls/check?employee_email=${item.email}&month=${month}&year=${year}`
-      );
-      if (existingPayroll.exists) {
-        Swal.fire({
-          title: "Payroll for this month has already been requested!!",
-          icon: "error",
-          iconColor: "#76a9fa ",
-          confirmButtonText: "Okay",
-          customClass: {
-            confirmButton: "bg-blue-500 text-white font-body px-32",
-            title: "font-head font-bold text-2xls",
-          },
-        });
-        return;
-      }
-      const payroll = {
-        month: parseInt(month),
-        year: parseInt(year),
-        employee: item,
-        hr_email: user.email,
-        payment_date: "",
-        payment_status: "pending",
-      };
-
-      const res = await axiosSecure.post("/payrolls", payroll);
-      if (res.data.insertedId) {
-        Swal.fire({
-          title: "Payroll request sent successfully!!",
-          icon: "success",
-          iconColor: "#76a9fa ",
-          confirmButtonText: "Okay",
-          customClass: {
-            confirmButton: "bg-blue-500 text-white font-body px-32",
-            title: "font-head font-bold text-2xls",
-          },
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        title: `${error.message}`,
-        icon: "error",
-        iconColor: "#76a9fa ",
-        confirmButtonText: "Okay",
-        customClass: {
-          confirmButton: "bg-blue-500 text-white font-body px-32",
-          title: "font-head font-bold text-2xls",
-        },
-      });
-    }
-  };
-
-  const handleDetails = (item) => {
-    console.log(item);
-  };
+const Progress = () => {
   return (
     <div>
       <div>
         <h2 className="text-2xl font-bold font-bebas tracking-widest text-zinc-900 inline-block ">
-          Welcome,{" "}
-          <span className="border-b-4 border-purple-600 pb-1">
-            {user?.displayName}
-          </span>
+          Progress
         </h2>
       </div>
       <div className="mt-12">
@@ -317,4 +216,4 @@ const HrHome = () => {
   );
 };
 
-export default HrHome;
+export default Progress;
