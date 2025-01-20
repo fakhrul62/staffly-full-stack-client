@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
+import Swal from "sweetalert2";
 
 const AllEmployees = () => {
   const axiosSecure = useAxiosSecure();
@@ -10,6 +11,72 @@ const AllEmployees = () => {
       return res.data;
     },
   });
+  // Handle firing an employee
+  const handleFire = async (id) => {
+    try {
+      const res = await axiosSecure.patch(`/fire-user/${id}`, {
+        workStatus: "inactive",
+      });
+      refetch(); // Refresh the data
+      Swal.fire({
+        title: "Are you sure?",
+        icon: "warning",
+        iconColor: "#76a9fa",
+        showCancelButton: true,
+        cancelButtonColor: "#76a9fa",
+        confirmButtonText: "Yes, delete it!",
+        customClass: {
+          confirmButton: "bg-blue-500 text-white font-body px-32",
+          title: "font-head font-bold text-2xls",
+        },
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          console.log(res.data);
+          if (res.data.modifiedCount > 0) {
+            refetch();
+            Swal.fire({
+              title: "Deleted!",
+              iconColor: "#76a9fa",
+              text: "Employee fired successfully.",
+              icon: "success",
+              customClass: {
+                confirmButton: "bg-blue-500 text-white font-body px-32",
+                title: "font-head font-bold text-2xls",
+              },
+            });
+          }
+        }
+      });
+    } catch (error) {
+      Swal.fire({
+        title: "Failed to fire employee!",
+        icon: "error",
+        iconColor: "#76a9fa ",
+        confirmButtonText: "Okay",
+        customClass: {
+          confirmButton: "bg-blue-500 text-white font-body px-32",
+          title: "font-head font-bold text-2xls",
+        },
+      });
+    }
+  };
+  // Handle role toggle between employee and HR
+  const handleRoleToggle = async (id, currentRole) => {
+    const newRole = currentRole === "employee" ? "hr" : "employee";
+
+    try {
+      const res = await axiosSecure.patch(`/update-role/${id}`, {
+        role: newRole,
+      });
+      if (res.data.modifiedCount > 0) {
+        refetch(); // Refresh data
+        alert(`User role updated to ${newRole}!`);
+      }
+    } catch (error) {
+      console.error("Error updating role:", error);
+      alert("Failed to update role.");
+    }
+  };
   return (
     <div>
       <div>
@@ -55,7 +122,6 @@ const AllEmployees = () => {
                       >
                         Fire
                       </th>
-                      
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -68,13 +134,43 @@ const AllEmployees = () => {
                           {item.name}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          {item.designation}
+                          {item.designation ? item.designation : "HR"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          Make HR
+                          <button
+                            onClick={() =>
+                              handleRoleToggle(item._id, item.role)
+                            }
+                            type="button"
+                            className={`px-4 py-2 rounded-lg border ${
+                              item.role === "employee"
+                                ? "bg-green-300 text-green-700 border-green-700"
+                                : "bg-red-300 text-red-700 border-red-700"
+                            }`}
+                          >
+                            {item.role === "employee"
+                              ? "Make HR"
+                              : "Make Employee"}
+                          </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          Fire
+                          {item.workStatus === "active" ? (
+                            <button
+                              onClick={() => handleFire(item._id)}
+                              type="button"
+                              className="px-4 py-2 bg-red-300 text-red-700 rounded-lg border border-red-700"
+                            >
+                              Fire
+                            </button>
+                          ) : (
+                            <button
+                              disabled
+                              type="button"
+                              className="px-4 py-2 bg-orange-300 text-orange-700 rounded-lg border border-orange-700"
+                            >
+                              Fired
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
