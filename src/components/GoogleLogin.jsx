@@ -19,6 +19,7 @@ const GoogleLogin = ({ text }) => {
             salary: 37500,
             bank: "AJ675HG978",
             isVerified: false,
+            workStatus:"active"
           })
           .then((res) => {
             console.log(res.data);
