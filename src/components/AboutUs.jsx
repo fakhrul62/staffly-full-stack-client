@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 const AboutUs = () => {
   return (
     <div className="my-20">
-      <section class="bg-zinc-800 rounded-2xl overflow-hidden p-20">
+      <section class="bg-zinc-800 rounded-2xl overflow-hidden md:p-20 p-10">
         <div class="container mx-auto flex flex-wrap items-center">
           <div class="w-full md:w-1/2 px-6">
             <p class="text-white font-head uppercase mb-20">About Us</p>
@@ -49,7 +49,7 @@ const AboutUs = () => {
             </div>
             <Link
               to="/register"
-              class="mt-6 inline-block bg-white text-black px-6 py-3 rounded-full font-body shadow-md hover:bg-secondary-dark transition"
+              class="my-6 inline-block bg-white text-black px-6 py-3 rounded-full font-body shadow-md hover:bg-secondary-dark transition"
             >
           
               Sign Up Now
