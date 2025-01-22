@@ -4,7 +4,7 @@ import useAuth from "./useAuth"; // Import custom hook for authentication
 
 // Create an axios instance with a base URL
 const axiosSecure = axios.create({
-  baseURL: "http://localhost:5000/", // Base URL for the API
+  baseURL: "https://employee-management-server-rho.vercel.app/", // Base URL for the API
 });
 
 const useAxiosSecure = () => {

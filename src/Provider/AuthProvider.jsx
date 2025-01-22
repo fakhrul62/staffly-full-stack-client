@@ -62,14 +62,14 @@ const AuthProvider = ({ children }) => {
       // const user = { email: currentUser?.email };
       // if (currentUser?.email) {
       //   axiosPublic
-      //     .post("http://localhost:5000/jwt", user, { withCredentials: true })
+      //     .post("https://employee-management-server-rho.vercel.app/jwt", user, { withCredentials: true })
       //     .then((res) => {
       //       console.log("login token", res.data);
       //       setLoading(false);
       //     });
       // } else {
       //   axiosPublic
-      //     .post("http://localhost:5000/jwt/logout", {}, { withCredentials: true })
+      //     .post("https://employee-management-server-rho.vercel.app/jwt/logout", {}, { withCredentials: true })
       //     .then((res) => {
       //       console.log("logout", res.data);
       //       setLoading(false);

@@ -99,7 +99,7 @@ const Router = createBrowserRouter([
             <EmployeeDetails></EmployeeDetails>
           </PrivateRoute>
         ),
-        loader: ({params})=> fetch(`http://localhost:5000/employees/${params.id}`)
+        loader: ({params})=> fetch(`https://employee-management-server-rho.vercel.app/employees/${params.id}`)
       },
       {
         path: "/dashboard/progress",
