@@ -1,127 +1,139 @@
 import React from "react";
-import useAxiosSecure from "../../hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
+import { Receipt, CheckCircle2, Clock, Printer } from "lucide-react";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
 import useAuth from "../../hooks/useAuth";
+import { printPayslip } from "../../lib/enterprise";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "../../components/ui/table";
+
+const getMonthName = (month) => {
+  const num = Number(month);
+  if (!num || num < 1 || num > 12) return month;
+  return new Date(2026, num - 1).toLocaleString("en-US", { month: "long" });
+};
 
 const PaymentHistory = () => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
-  const { data: payHistory = [], refetch } = useQuery({
-    queryKey: ["payHistory"],
+
+  const { data: payHistory = [] } = useQuery({
+    queryKey: ["payHistory", user?.email],
+    enabled: !!user?.email,
     queryFn: async () => {
       const res = await axiosSecure.get(`/payrolls/${user.email}`);
       return res.data;
     },
   });
 
-  console.log(payHistory);
+  const totalEarned = payHistory
+    .filter((p) => p.payment_status === "paid")
+    .reduce((sum, p) => sum + Number(p.employee?.salary || 0), 0);
+
   return (
-    <div>
-      <div>
-        <h2 className="text-2xl font-bold font-bebas tracking-widest text-zinc-900 inline-block ">
-          Payment History
-        </h2>
-      </div>
-      <div className="mt-20">
-        <div className="flex flex-col">
-          <div className="-m-1.5 overflow-x-auto">
-            <div className="p-1.5 min-w-full inline-block align-middle">
-              <div className="border rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        No.
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Name
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Salary
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Month
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Year
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Payment Date
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Payment Date
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {payHistory.map((item, idx) => (
-                      <tr key={item._id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                          {idx + 1}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                          {item.employee.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          {item.employee.salary}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          {item.month}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          {item.year}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          {item.payment_date}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                        {item.payment_status === "pending" ? (
-                            <button 
-                              type="button" disabled
-                              className="px-4 py-2 bg-red-300 text-red-700 rounded-lg border border-red-700"
-                            >
-                              Pending
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              disabled
-                              className="px-4 py-2 bg-green-300 text-green-700 rounded-lg border border-green-700"
-                            >
-                              Paid
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <Badge variant="default" className="mb-3">
+            Compensation
+          </Badge>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+            Payment History
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Track your monthly salary payouts and disbursement dates.
+          </p>
         </div>
+
+        <Badge variant="success" className="py-1.5 px-3.5 tabular-nums self-start sm:self-end">
+          Total Received: ${totalEarned.toLocaleString()}
+        </Badge>
       </div>
+
+      {/* Table Card */}
+      <Card className="overflow-hidden border-slate-200/80 bg-white shadow-sm">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-16">No.</TableHead>
+              <TableHead>Employee</TableHead>
+              <TableHead>Salary</TableHead>
+              <TableHead>Period</TableHead>
+              <TableHead>Payment Date</TableHead>
+              <TableHead className="text-right">Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {payHistory.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="py-12 text-center">
+                  <div className="flex flex-col items-center gap-2 text-slate-400">
+                    <Receipt className="h-8 w-8" strokeWidth={1.5} />
+                    <p className="text-sm font-medium text-slate-600">
+                      No payment records yet
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              payHistory.map((item, idx) => (
+                <TableRow key={item._id}>
+                  <TableCell className="font-medium text-slate-400 tabular-nums">
+                    {idx + 1}
+                  </TableCell>
+                  <TableCell className="font-semibold text-slate-900">
+                    {item.employee?.name}
+                  </TableCell>
+                  <TableCell className="font-medium text-slate-900 tabular-nums">
+                    ${Number(item.employee?.salary || 0).toLocaleString()}
+                  </TableCell>
+                  <TableCell className="text-slate-600 tabular-nums">
+                    {getMonthName(item.month)} {item.year}
+                  </TableCell>
+                  <TableCell className="text-slate-500 tabular-nums">
+                    {item.payment_date || "—"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="inline-flex items-center justify-end gap-2">
+                      {item.payment_status === "pending" ? (
+                        <Badge variant="warning">
+                          <Clock className="h-3.5 w-3.5" strokeWidth={1.75} />
+                          Pending
+                        </Badge>
+                      ) : (
+                        <Badge variant="success">
+                          <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2} />
+                          Paid
+                        </Badge>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => printPayslip(item)}
+                        title="Print / Save Payslip PDF"
+                        aria-label="Print Payslip"
+                        className="h-8 w-8 text-slate-500 hover:text-blue-600"
+                      >
+                        <Printer className="h-3.5 w-3.5" strokeWidth={1.75} />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   );
 };

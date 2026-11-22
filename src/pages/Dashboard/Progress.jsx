@@ -1,17 +1,43 @@
 import React, { useState } from "react";
-import useAxiosSecure from "../../hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
+import { Filter, X, Clock, ClipboardList } from "lucide-react";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { Select } from "../../components/ui/select";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "../../components/ui/table";
+
+const formatDate = (value) => {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
 
 const Progress = () => {
   const axiosSecure = useAxiosSecure();
   const [selectedEmail, setSelectedEmail] = useState("");
-  const { data: tasks = [], refetch } = useQuery({
+
+  const { data: tasks = [] } = useQuery({
     queryKey: ["tasks"],
     queryFn: async () => {
       const res = await axiosSecure.get(`/tasks`);
       return res.data;
     },
   });
+
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
@@ -19,119 +45,120 @@ const Progress = () => {
       return res.data;
     },
   });
+
   const filteredTasks = selectedEmail
     ? tasks.filter((task) => task.user_email === selectedEmail)
     : tasks;
+
+  const totalHours = filteredTasks.reduce(
+    (sum, t) => sum + Number(t.hour || 0),
+    0
+  );
+
   return (
-    <div>
-      <div>
-        <h2 className="text-2xl font-bold font-bebas tracking-widest text-zinc-900 inline-block ">
-          Progress
-        </h2>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <Badge variant="default" className="mb-3">
+            Workforce Activity
+          </Badge>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+            Team Progress
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Track submitted work logs and total hours across employees.
+          </p>
+        </div>
+
+        <Badge variant="secondary" className="py-1.5 px-3.5 tabular-nums self-start sm:self-end">
+          <Clock className="h-3.5 w-3.5 text-blue-600" strokeWidth={1.75} />
+          {totalHours} hrs logged ({filteredTasks.length} entries)
+        </Badge>
       </div>
-      <div className="mt-12">
-        <h3 className="text-2xl font-bold text-zinc-900 mb-6">
-          All Employees:
-        </h3>
-        <div className="flex items-center gap-5 mb-5">
-          <div className="dropdown">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn m-1 px-10 border border-zinc-500"
+
+      {/* Filter Bar */}
+      <Card className="p-4 bg-white border-slate-200/80 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 shrink-0">
+            <Filter className="h-4 w-4 text-blue-600" strokeWidth={1.75} />
+            Filter by Employee
+          </div>
+          <div className="w-full sm:max-w-xs">
+            <Select
+              value={selectedEmail}
+              onChange={(e) => setSelectedEmail(e.target.value)}
             >
-              Filter
-            </div>
-            <ul
-              tabIndex={0}
-              className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
-            >
-              {users.map((user) => (
-                <li key={user.email} onClick={() => setSelectedEmail(user.email)}>
-                  <a>{user.name}</a>
-                </li>
+              <option value="">All Employees</option>
+              {users.map((u) => (
+                <option key={u.email} value={u.email}>
+                  {u.name}
+                </option>
               ))}
-            </ul>
+            </Select>
           </div>
           {selectedEmail && (
-          <div>
-            {/* <p className="text-gray-600">Filtering tasks for: {selectedEmail}</p> */}
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setSelectedEmail("")}
-              className="btn m-1 px-10 border border-zinc-500 text-zinc-800  "
+              className="self-start sm:self-auto"
             >
+              <X className="h-3.5 w-3.5" strokeWidth={2} />
               Clear Filter
-            </button>
-          </div>
-        )}
+            </Button>
+          )}
         </div>
-        
-        <div className="flex flex-col">
-          <div className="-m-1.5 overflow-x-auto">
-            <div className="p-1.5 min-w-full inline-block align-middle">
-              <div className="border rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        No.
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Task Name
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Hour Spent
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Date
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Made by
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {filteredTasks.map((item, idx) => (
-                      <tr key={item._id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                          {idx + 1}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                          {item.task}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          {item.hour}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          {item.date}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          {item.user_name}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      </Card>
+
+      {/* Table Card */}
+      <Card className="overflow-hidden border-slate-200/80 bg-white shadow-sm">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-16">No.</TableHead>
+              <TableHead>Task</TableHead>
+              <TableHead>Hours Spent</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Employee</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredTasks.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="py-12 text-center">
+                  <div className="flex flex-col items-center gap-2 text-slate-400">
+                    <ClipboardList className="h-8 w-8" strokeWidth={1.5} />
+                    <p className="text-sm font-medium text-slate-600">
+                      No task entries found
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredTasks.map((item, idx) => (
+                <TableRow key={item._id}>
+                  <TableCell className="font-medium text-slate-400 tabular-nums">
+                    {idx + 1}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="default">{item.task}</Badge>
+                  </TableCell>
+                  <TableCell className="font-semibold text-slate-900 tabular-nums">
+                    {item.hour} hrs
+                  </TableCell>
+                  <TableCell className="text-slate-600 tabular-nums">
+                    {formatDate(item.date)}
+                  </TableCell>
+                  <TableCell className="font-medium text-slate-800">
+                    {item.user_name}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   );
 };

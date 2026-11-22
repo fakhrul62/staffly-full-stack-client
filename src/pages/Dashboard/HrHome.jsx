@@ -1,11 +1,48 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import {
+  CheckCircle2,
+  XCircle,
+  CreditCard,
+  Eye,
+  Users,
+  ShieldCheck,
+  Clock,
+} from "lucide-react";
+import Swal from "sweetalert2";
 import useAuth from "../../hooks/useAuth";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
-import { useQuery } from "@tanstack/react-query";
-import { RxCross2 } from "react-icons/rx";
-import { IoCheckmarkSharp } from "react-icons/io5";
-import Swal from "sweetalert2";
-import { Link } from "react-router-dom";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { Select } from "../../components/ui/select";
+import { Label } from "../../components/ui/label";
+import { Dialog } from "../../components/ui/dialog";
+import { Avatar, AvatarImage, AvatarFallback } from "../../components/ui/avatar";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "../../components/ui/table";
+
+const months = [
+  { value: "01", label: "January" },
+  { value: "02", label: "February" },
+  { value: "03", label: "March" },
+  { value: "04", label: "April" },
+  { value: "05", label: "May" },
+  { value: "06", label: "June" },
+  { value: "07", label: "July" },
+  { value: "08", label: "August" },
+  { value: "09", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" },
+];
 
 const HrHome = () => {
   const { user } = useAuth();
@@ -21,49 +58,38 @@ const HrHome = () => {
       return res.data;
     },
   });
+
   const handleToggleVerified = async (id, currentStatus) => {
-    const user = { isVerified: !currentStatus };
-    const res = await axiosSecure.patch(`/users/${id}`, user);
+    const res = await axiosSecure.patch(`/users/${id}`, {
+      isVerified: !currentStatus,
+    });
     if (res.data.modifiedCount > 0) {
       refetch();
-      // Swal.fire({
-      //   title: "Status Updated!",
-      //   icon: "success",
-      //   iconColor: "#76a9fa ",
-      //   confirmButtonText: "Okay",
-      //   customClass: {
-      //     confirmButton: "bg-blue-500 text-white font-body px-32",
-      //     title: "font-head font-bold text-2xls",
-      //   },
-      // });
     }
   };
-  const handlePayroll = async (e, item) => {
+
+  const handlePayroll = async (e) => {
     e.preventDefault();
-    const form = e.target;
+    if (!selectedEmployee) return;
 
     try {
-      // Check if payroll already exists before making a request
       const { data: existingPayroll } = await axiosSecure.get(
-        `/payrolls/check?employee_email=${item.email}&month=${month}&year=${year}`
+        `/payrolls/check?employee_email=${selectedEmployee.email}&month=${month}&year=${year}`
       );
       if (existingPayroll.exists) {
         Swal.fire({
-          title: "Payroll for this month has already been requested!!",
+          title: "Already Requested",
+          text: "Payroll for this month has already been requested.",
           icon: "error",
-          iconColor: "#76a9fa ",
-          confirmButtonText: "Okay",
-          customClass: {
-            confirmButton: "bg-blue-500 text-white font-body px-32",
-            title: "font-head font-bold text-2xls",
-          },
+          confirmButtonColor: "#1d4ed8",
         });
         return;
       }
+
       const payroll = {
-        month: parseInt(month),
-        year: parseInt(year),
-        employee: item,
+        month: parseInt(month, 10),
+        year: parseInt(year, 10),
+        employee: selectedEmployee,
         hr_email: user.email,
         payment_date: "",
         payment_status: "pending",
@@ -71,248 +97,234 @@ const HrHome = () => {
 
       const res = await axiosSecure.post("/payrolls", payroll);
       if (res.data.insertedId) {
+        setSelectedEmployee(null);
+        setMonth("");
+        setYear("");
         Swal.fire({
-          title: "Payroll request sent successfully!!",
+          title: "Request Sent",
+          text: "Payroll request has been sent to Admin for approval.",
           icon: "success",
-          iconColor: "#76a9fa ",
-          confirmButtonText: "Okay",
-          customClass: {
-            confirmButton: "bg-blue-500 text-white font-body px-32",
-            title: "font-head font-bold text-2xls",
-          },
+          confirmButtonColor: "#1d4ed8",
         });
       }
     } catch (error) {
       Swal.fire({
-        title: `${error.message}`,
+        title: "Request Failed",
+        text: error.message,
         icon: "error",
-        iconColor: "#76a9fa ",
-        confirmButtonText: "Okay",
-        customClass: {
-          confirmButton: "bg-blue-500 text-white font-body px-32",
-          title: "font-head font-bold text-2xls",
-        },
+        confirmButtonColor: "#1d4ed8",
       });
     }
   };
 
-  const handleDetails = (item) => {
-    console.log(item);
-  };
+  const verifiedCount = users.filter((u) => u.isVerified).length;
+  const pendingCount = users.length - verifiedCount;
+  const currentYear = new Date().getFullYear();
+
   return (
-    <div>
-      <div>
-        <h2 className="text-2xl font-bold font-bebas tracking-widest text-zinc-900 inline-block ">
-          Welcome,{" "}
-          <span className="border-b-4 border-purple-600 pb-1">
-            {user?.displayName}
-          </span>
-        </h2>
-      </div>
-      <div className="mt-12">
-        <h3 className="text-2xl font-bold text-zinc-900 mb-6">
-          All Employees:
-        </h3>
-        <div className="flex flex-col">
-          <div className="-m-1.5 overflow-x-auto">
-            <div className="p-1.5 min-w-full inline-block align-middle">
-              <div className="border rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        No.
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Name
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Email
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Verify Status
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Bank
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Salary
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-center text-xs font-medium text-gray-500"
-                      >
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {users.map((item, idx) => (
-                      <tr key={item._id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                          {idx + 1}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                          {item.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          {item.email}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-800">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleToggleVerified(item._id, item.isVerified)
-                            }
-                          >
-                            {item.isVerified ? (
-                              <IoCheckmarkSharp className="text-white bg-green-400 p-2 rounded-full text-4xl duration-300" />
-                            ) : (
-                              <RxCross2 className="text-white bg-red-400 p-2 rounded-full text-4xl duration-300" />
-                            )}
-                          </button>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          {item.bank}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          ${item.salary}
-                        </td>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <Badge variant="default" className="mb-3">
+            HR Workspace
+          </Badge>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+            Welcome back, {user?.displayName || "HR Manager"}
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Verify employee profiles, inspect salary charts, and initiate
+            monthly payroll requests.
+          </p>
+        </div>
 
-                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium space-x-2">
-                          <button
-                            onClick={() => {
-                              setSelectedEmployee(item); // Store the selected employee
-                              document.getElementById("my_modal_5").showModal();
-                            }}
-                            type="button"
-                            disabled={!item.isVerified}
-                            className="hover:bg-emerald-600 hover:text-white bg-emerald-200 duration-300 gap-2 text-emerald-600 px-3 py-3 border border-emerald-500 rounded-lg"
-                          >
-                            Pay
-                          </button>
-                          <dialog
-                            id="my_modal_5"
-                            className="modal !z-0 modal-bottom sm:modal-middle"
-                          >
-                            <div className="modal-box">
-                              <h2 className="text-center font-bebas uppercase font-bold text-black tracking-wide text-2xl mb-6 mt-3">
-                                Monthly Pay Request
-                              </h2>
-                              <form
-                                className="font-body space-y-2 p-2 bg-zinc-200 rounded-lg"
-                                onSubmit={(e) => {
-                                  e.preventDefault(); // Prevent default form submission
-
-                                  handlePayroll(e, selectedEmployee); // Use the selected employee
-
-                                  document
-                                    .getElementById("my_modal_5")
-                                    ?.close();
-                                }}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <div className="bg-zinc-300 grow space-y-2 p-2 rounded-lg ">
-                                    <select
-                                      id="month"
-                                      className="w-full  border-transparent focus:outline-none focus:ring-0 focus:border-transparent rounded-lg"
-                                      value={month}
-                                      required
-                                      onChange={(e) => {
-                                        setMonth(e.target.value);
-                                      }}
-                                    >
-                                      <option value="">Select Month</option>
-                                      <option value="01">January</option>
-                                      <option value="02">February</option>
-                                      <option value="03">March</option>
-                                      <option value="04">April</option>
-                                      <option value="05">May</option>
-                                      <option value="06">June</option>
-                                      <option value="07">July</option>
-                                      <option value="08">August</option>
-                                      <option value="09">September</option>
-                                      <option value="10">October</option>
-                                      <option value="11">November</option>
-                                      <option value="12">December</option>
-                                    </select>
-                                  </div>
-
-                                  <div className="bg-zinc-300 space-y-2 p-2 rounded-lg">
-                                    <select
-                                      id="year"
-                                      required
-                                      defaultValue=""
-                                      className="w-full border-transparent focus:outline-none focus:ring-0 focus:border-transparent rounded-lg"
-                                      onChange={(e) => setYear(e.target.value)}
-                                    >
-                                      <option value="">Select Year</option>
-                                      {/* Example: You can dynamically create years using a loop */}
-                                      {Array.from({ length: 30 }, (_, i) => {
-                                        const currentYear =
-                                          new Date().getFullYear();
-                                        return (
-                                          <option
-                                            key={i}
-                                            value={currentYear + i}
-                                          >
-                                            {currentYear + i}
-                                          </option>
-                                        );
-                                      })}
-                                    </select>
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <button className="btn w-full bg-blue-500 hover:bg-zinc-300 border border-zinc-300 hover:border-zinc-400 text-white hover:text-black duration-300 font-body">
-                                    Request Admin for Pay
-                                  </button>
-                                </div>
-                              </form>
-                              <div className="modal-action">
-                                <form method="dialog">
-                                  <button className="btn">Close</button>
-                                </form>
-                              </div>
-                            </div>
-                          </dialog>
-                          <Link to={`/dashboard/details/${item._id}`}>
-                            <button
-                              type="button"
-                              className="hover:bg-blue-500 hover:text-white bg-blue-200 duration-300 gap-2 text-blue-500 px-3 py-3 border border-blue-500 rounded-lg"
-                            >
-                              Details
-                            </button>
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary" className="py-1 px-3 tabular-nums">
+            <Users className="h-3.5 w-3.5" strokeWidth={1.75} />
+            {users.length} Employees
+          </Badge>
+          <Badge variant="success" className="py-1 px-3 tabular-nums">
+            <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.75} />
+            {verifiedCount} Verified
+          </Badge>
+          <Badge variant="warning" className="py-1 px-3 tabular-nums">
+            <Clock className="h-3.5 w-3.5" strokeWidth={1.75} />
+            {pendingCount} Pending
+          </Badge>
         </div>
       </div>
+
+      {/* Table Card */}
+      <Card className="overflow-hidden border-slate-200/80 bg-white shadow-sm">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-16">No.</TableHead>
+              <TableHead>Employee</TableHead>
+              <TableHead className="text-center">Verified</TableHead>
+              <TableHead>Bank Account</TableHead>
+              <TableHead>Salary</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="py-12 text-center">
+                  <div className="flex flex-col items-center gap-2 text-slate-400">
+                    <Users className="h-8 w-8" strokeWidth={1.5} />
+                    <p className="text-sm font-medium text-slate-600">
+                      No employees registered yet
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              users.map((item, idx) => (
+                <TableRow key={item._id}>
+                  <TableCell className="font-medium text-slate-400 tabular-nums">
+                    {idx + 1}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-9 w-9 border border-slate-200">
+                        <AvatarImage src={item.photoURL} alt={item.name} />
+                        <AvatarFallback>
+                          {(item.name || "E").slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-slate-900 truncate">
+                          {item.name}
+                        </p>
+                        <p className="text-xs text-slate-500 truncate">
+                          {item.email}
+                        </p>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() =>
+                        handleToggleVerified(item._id, item.isVerified)
+                      }
+                      title={
+                        item.isVerified
+                          ? "Verified (click to revoke)"
+                          : "Unverified (click to verify)"
+                      }
+                      className={
+                        item.isVerified
+                          ? "h-9 w-9 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700"
+                          : "h-9 w-9 rounded-full bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600"
+                      }
+                    >
+                      {item.isVerified ? (
+                        <CheckCircle2 className="h-5 w-5" strokeWidth={1.75} />
+                      ) : (
+                        <XCircle className="h-5 w-5" strokeWidth={1.75} />
+                      )}
+                    </Button>
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-slate-600">
+                    {item.bank || "—"}
+                  </TableCell>
+                  <TableCell className="font-semibold text-slate-900 tabular-nums">
+                    ${Number(item.salary || 0).toLocaleString()}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="inline-flex items-center justify-end gap-2">
+                      <Button
+                        size="sm"
+                        disabled={!item.isVerified}
+                        onClick={() => setSelectedEmployee(item)}
+                        className="h-8 px-3"
+                      >
+                        <CreditCard className="h-3.5 w-3.5" strokeWidth={1.75} />
+                        Pay
+                      </Button>
+                      <Link to={`/dashboard/details/${item._id}`}>
+                        <Button variant="outline" size="sm" className="h-8 px-3">
+                          <Eye className="h-3.5 w-3.5" strokeWidth={1.75} />
+                          Details
+                        </Button>
+                      </Link>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+
+      {/* Monthly Pay Request Dialog */}
+      <Dialog
+        open={!!selectedEmployee}
+        onClose={() => setSelectedEmployee(null)}
+        title="Monthly Pay Request"
+        description={
+          selectedEmployee
+            ? `Submit salary disbursement request for ${selectedEmployee.name} ($${Number(
+                selectedEmployee.salary || 0
+              ).toLocaleString()}).`
+            : ""
+        }
+      >
+        <form onSubmit={handlePayroll} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="pay-month">Month</Label>
+              <Select
+                id="pay-month"
+                value={month}
+                required
+                onChange={(e) => setMonth(e.target.value)}
+              >
+                <option value="">Select month</option>
+                {months.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="pay-year">Year</Label>
+              <Select
+                id="pay-year"
+                value={year}
+                required
+                onChange={(e) => setYear(e.target.value)}
+              >
+                <option value="">Select year</option>
+                {Array.from({ length: 10 }, (_, i) => (
+                  <option key={i} value={currentYear + i}>
+                    {currentYear + i}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSelectedEmployee(null)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit">
+              <CreditCard className="h-4 w-4" strokeWidth={1.75} />
+              Request Admin Pay
+            </Button>
+          </div>
+        </form>
+      </Dialog>
     </div>
   );
 };

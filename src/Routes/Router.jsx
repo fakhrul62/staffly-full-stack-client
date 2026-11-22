@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Root from "./Root";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
@@ -6,47 +6,46 @@ import Register from "../pages/Register";
 import Contact from "../pages/Contact";
 import PrivateRoute from "./PrivateRoute";
 import Profile from "../pages/Profile";
-import AdminHome from "../pages/Dashboard/ADminHome";
+import AdminHome from "../pages/Dashboard/AdminHome";
 import HrHome from "../pages/Dashboard/HrHome";
 import EmployeeHome from "../pages/Dashboard/EmployeeHome";
 import Dashboard from "./Dashboard";
+import DashboardIndex from "./DashboardIndex";
 import PaymentHistory from "../pages/Dashboard/PaymentHistory";
 import AllEmployees from "../pages/Dashboard/AllEmployees";
 import Payroll from "../pages/Dashboard/Payroll";
 import HrPayment from "../pages/Dashboard/HrPayment";
 import Progress from "../pages/Dashboard/Progress";
 import EmployeeDetails from "../pages/Dashboard/EmployeeDetails";
+import Analytics from "../pages/Dashboard/Analytics";
+import Settings from "../pages/Dashboard/Settings";
+import Leaves from "../pages/Dashboard/Leaves";
+import AuditLogs from "../pages/Dashboard/AuditLogs";
 
 const Router = createBrowserRouter([
   {
     path: "/",
-    element: <Root></Root>,
+    element: <Root />,
     children: [
-      //public
       {
         path: "/",
-        element: <Home></Home>,
+        element: <Home />,
       },
       {
         path: "/contact",
-        element: <Contact></Contact>,
+        element: <Contact />,
       },
       {
         path: "/login",
-        element: <Login></Login>,
+        element: <Login />,
       },
       {
         path: "/register",
-        element: <Register></Register>,
+        element: <Register />,
       },
-      //private
       {
         path: "/profile",
-        element: (
-          <PrivateRoute>
-            <Profile></Profile>
-          </PrivateRoute>
-        ),
+        element: <Navigate to="/dashboard/profile" replace />,
       },
     ],
   },
@@ -54,16 +53,61 @@ const Router = createBrowserRouter([
     path: "/dashboard",
     element: (
       <PrivateRoute>
-        <Dashboard></Dashboard>
+        <Dashboard />
       </PrivateRoute>
     ),
     children: [
-      //dashboard admin
+      {
+        index: true,
+        element: <DashboardIndex />,
+      },
+      // Shared inside dashboard
+      {
+        path: "/dashboard/profile",
+        element: (
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/dashboard/leaves",
+        element: (
+          <PrivateRoute>
+            <Leaves />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/dashboard/settings",
+        element: (
+          <PrivateRoute>
+            <Settings />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/dashboard/analytics",
+        element: (
+          <PrivateRoute>
+            <Analytics />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/dashboard/audit-logs",
+        element: (
+          <PrivateRoute>
+            <AuditLogs />
+          </PrivateRoute>
+        ),
+      },
+      // Admin
       {
         path: "/dashboard/home",
         element: (
           <PrivateRoute>
-            <AdminHome></AdminHome>
+            <AdminHome />
           </PrivateRoute>
         ),
       },
@@ -71,7 +115,7 @@ const Router = createBrowserRouter([
         path: "/dashboard/all-employee-list",
         element: (
           <PrivateRoute>
-            <AllEmployees></AllEmployees>
+            <AllEmployees />
           </PrivateRoute>
         ),
       },
@@ -79,16 +123,16 @@ const Router = createBrowserRouter([
         path: "/dashboard/payroll",
         element: (
           <PrivateRoute>
-            <Payroll></Payroll>
+            <Payroll />
           </PrivateRoute>
         ),
       },
-      //dashboard hr
+      // HR
       {
         path: "/dashboard/hr-home",
         element: (
           <PrivateRoute>
-            <HrHome></HrHome>
+            <HrHome />
           </PrivateRoute>
         ),
       },
@@ -96,16 +140,19 @@ const Router = createBrowserRouter([
         path: "/dashboard/details/:id",
         element: (
           <PrivateRoute>
-            <EmployeeDetails></EmployeeDetails>
+            <EmployeeDetails />
           </PrivateRoute>
         ),
-        loader: ({params})=> fetch(`https://employee-management-server-rho.vercel.app/employees/${params.id}`)
+        loader: ({ params }) =>
+          fetch(
+            `https://employee-management-server-rho.vercel.app/employees/${params.id}`
+          ),
       },
       {
         path: "/dashboard/progress",
         element: (
           <PrivateRoute>
-            <Progress></Progress>
+            <Progress />
           </PrivateRoute>
         ),
       },
@@ -113,16 +160,16 @@ const Router = createBrowserRouter([
         path: "/dashboard/hr-payment",
         element: (
           <PrivateRoute>
-            <HrPayment></HrPayment>
+            <HrPayment />
           </PrivateRoute>
         ),
       },
-      //dashboard employee
+      // Employee
       {
         path: "/dashboard/work-sheet",
         element: (
           <PrivateRoute>
-            <EmployeeHome></EmployeeHome>
+            <EmployeeHome />
           </PrivateRoute>
         ),
       },
@@ -130,7 +177,7 @@ const Router = createBrowserRouter([
         path: "/dashboard/payment-history",
         element: (
           <PrivateRoute>
-            <PaymentHistory></PaymentHistory>
+            <PaymentHistory />
           </PrivateRoute>
         ),
       },

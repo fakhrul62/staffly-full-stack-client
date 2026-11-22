@@ -1,12 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 import flowbite from "flowbite-react/tailwind";
-import withMT from "@material-tailwind/react/utils/withMT";
+
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
     flowbite.content(),
-    'node_modules/preline/dist/*.js',
+    "node_modules/preline/dist/*.js",
   ],
   daisyui: {
     themes: ["light"],
@@ -14,13 +14,13 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        "head": ["Montserrat, serif"],
-        "body": ["Inter, serif"],
-        "chivo": ["Chivo, serif"],
-        "bebas": ["Bebas Neue, serif"],
+        display: ["'Plus Jakarta Sans'", "Inter", "sans-serif"],
+        head: ["'Plus Jakarta Sans'", "Montserrat", "sans-serif"],
+        body: ["Inter", "sans-serif"],
+        chivo: ["Chivo", "sans-serif"],
+        bebas: ["'Bebas Neue'", "sans-serif"],
       },
     },
   },
-  plugins: [require('daisyui'),flowbite.plugin(),require('preline/plugin'),
-  ],
-}
+  plugins: [require("daisyui"), flowbite.plugin(), require("preline/plugin")],
+};

@@ -1,9 +1,29 @@
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import useAxiosSecure from "../../hooks/useAxiosSecure";
+import { Search, Shield, UserX, Users, Download } from "lucide-react";
 import Swal from "sweetalert2";
+import useAuth from "../../hooks/useAuth";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
+import { exportToCsv, logAuditEvent } from "../../lib/enterprise";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { Input } from "../../components/ui/input";
+import { Avatar, AvatarImage, AvatarFallback } from "../../components/ui/avatar";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "../../components/ui/table";
 
 const AllEmployees = () => {
+  const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
+  const [search, setSearch] = useState("");
+
   const { data: allUsers = [], refetch } = useQuery({
     queryKey: ["allUsers"],
     queryFn: async () => {
@@ -11,176 +31,241 @@ const AllEmployees = () => {
       return res.data;
     },
   });
-  // Handle firing an employee
-  const handleFire = async (id) => {
+
+  const handleFire = async (id, name) => {
+    const confirm = await Swal.fire({
+      title: `Fire ${name}?`,
+      text: "This will deactivate their account and prevent them from signing in.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Yes, deactivate",
+    });
+
+    if (!confirm.isConfirmed) return;
+
     try {
       const res = await axiosSecure.patch(`/fire-user/${id}`, {
         workStatus: "inactive",
       });
-      refetch(); // Refresh the data
+      if (res.data.modifiedCount > 0) {
+        logAuditEvent({
+          actor: user?.displayName || user?.email,
+          actorRole: "Admin",
+          action: "EMPLOYEE_DEACTIVATED",
+          target: name,
+          details: "Marked employee workStatus as inactive",
+          severity: "destructive",
+        });
+        refetch();
+        Swal.fire({
+          title: "Employee Deactivated",
+          text: `${name} has been marked as inactive.`,
+          icon: "success",
+          confirmButtonColor: "#1d4ed8",
+        });
+      }
+    } catch {
       Swal.fire({
-        title: "Are you sure?",
-        icon: "warning",
-        iconColor: "#76a9fa",
-        showCancelButton: true,
-        cancelButtonColor: "#76a9fa",
-        confirmButtonText: "Yes, delete it!",
-        customClass: {
-          confirmButton: "bg-blue-500 text-white font-body px-32",
-          title: "font-head font-bold text-2xls",
-        },
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          console.log(res.data);
-          if (res.data.modifiedCount > 0) {
-            refetch();
-            Swal.fire({
-              title: "Deleted!",
-              iconColor: "#76a9fa",
-              text: "Employee fired successfully.",
-              icon: "success",
-              customClass: {
-                confirmButton: "bg-blue-500 text-white font-body px-32",
-                title: "font-head font-bold text-2xls",
-              },
-            });
-          }
-        }
-      });
-    } catch (error) {
-      Swal.fire({
-        title: "Failed to fire employee!",
+        title: "Failed to fire employee",
         icon: "error",
-        iconColor: "#76a9fa ",
-        confirmButtonText: "Okay",
-        customClass: {
-          confirmButton: "bg-blue-500 text-white font-body px-32",
-          title: "font-head font-bold text-2xls",
-        },
+        confirmButtonColor: "#1d4ed8",
       });
     }
   };
-  // Handle role toggle between employee and HR
-  const handleRoleToggle = async (id, currentRole) => {
-    const newRole = currentRole === "employee" ? "hr" : "employee";
 
+  const handleRoleToggle = async (id, currentRole, name) => {
+    const newRole = currentRole === "employee" ? "hr" : "employee";
     try {
       const res = await axiosSecure.patch(`/update-role/${id}`, {
         role: newRole,
       });
       if (res.data.modifiedCount > 0) {
-        refetch(); // Refresh data
-        alert(`User role updated to ${newRole}!`);
+        logAuditEvent({
+          actor: user?.displayName || user?.email,
+          actorRole: "Admin",
+          action: "ROLE_UPDATED",
+          target: name,
+          details: `Changed role from ${currentRole.toUpperCase()} to ${newRole.toUpperCase()}`,
+          severity: "warning",
+        });
+        refetch();
+        Swal.fire({
+          title: "Role Updated",
+          text: `${name} is now assigned as ${newRole.toUpperCase()}.`,
+          icon: "success",
+          confirmButtonColor: "#1d4ed8",
+        });
       }
     } catch (error) {
       console.error("Error updating role:", error);
-      alert("Failed to update role.");
+      Swal.fire({
+        title: "Failed to update role",
+        icon: "error",
+        confirmButtonColor: "#1d4ed8",
+      });
     }
   };
+
+  const filteredUsers = allUsers.filter((item) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      (item.name || "").toLowerCase().includes(q) ||
+      (item.designation || "hr").toLowerCase().includes(q) ||
+      (item.role || "").toLowerCase().includes(q)
+    );
+  });
+
   return (
-    <div>
-      <div>
-        <h2 className="text-2xl font-bold font-bebas tracking-widest text-zinc-900 inline-block ">
-          All Employees
-        </h2>
-      </div>
-      <div className="mt-20">
-        <div className="flex flex-col">
-          <div className="-m-1.5 overflow-x-auto">
-            <div className="p-1.5 min-w-full inline-block align-middle">
-              <div className="border rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        No.
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Name
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Designation
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Make HR
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-start text-xs font-medium text-gray-500"
-                      >
-                        Fire
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {allUsers.map((item, idx) => (
-                      <tr key={item._id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                          {idx + 1}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                          {item.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          {item.designation ? item.designation : "HR"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          <button
-                            onClick={() =>
-                              handleRoleToggle(item._id, item.role)
-                            }
-                            type="button"
-                            className={`px-4 py-2 rounded-lg border ${
-                              item.role === "employee"
-                                ? "bg-green-300 text-green-700 border-green-700"
-                                : "bg-red-300 text-red-700 border-red-700"
-                            }`}
-                          >
-                            {item.role === "employee"
-                              ? "Make HR"
-                              : "Make Employee"}
-                          </button>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          {item.workStatus === "active" ? (
-                            <button
-                              onClick={() => handleFire(item._id)}
-                              type="button"
-                              className="px-4 py-2 bg-red-300 text-red-700 rounded-lg border border-red-700"
-                            >
-                              Fire
-                            </button>
-                          ) : (
-                            <button
-                              disabled
-                              type="button"
-                              className="px-4 py-2 bg-orange-300 text-orange-700 rounded-lg border border-orange-700"
-                            >
-                              Fired
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <Badge variant="default" className="mb-3">
+            Directory
+          </Badge>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+            All Employees
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Manage roles and employment status across your organization.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="relative w-full sm:w-64">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+              strokeWidth={1.75}
+            />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name or role..."
+              className="pl-9 bg-white"
+            />
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10 px-3.5"
+            onClick={() =>
+              exportToCsv(
+                "staffly-employees.csv",
+                ["Name", "Email", "Designation", "Role", "Status"],
+                filteredUsers.map((u) => [
+                  u.name,
+                  u.email || "",
+                  u.designation || "HR Manager",
+                  u.role,
+                  u.workStatus || "active",
+                ])
+              )
+            }
+          >
+            <Download className="h-4 w-4" strokeWidth={1.75} />
+            Export CSV
+          </Button>
         </div>
       </div>
+
+      {/* Table Card */}
+      <Card className="overflow-hidden border-slate-200/80 bg-white shadow-sm">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-16">No.</TableHead>
+              <TableHead>Employee</TableHead>
+              <TableHead>Designation</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Role Action</TableHead>
+              <TableHead className="text-right">Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredUsers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="py-12 text-center">
+                  <div className="flex flex-col items-center gap-2 text-slate-400">
+                    <Users className="h-8 w-8" strokeWidth={1.5} />
+                    <p className="text-sm font-medium text-slate-600">
+                      No employees found
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredUsers.map((item, idx) => (
+                <TableRow key={item._id}>
+                  <TableCell className="font-medium text-slate-400 tabular-nums">
+                    {idx + 1}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-9 w-9 border border-slate-200">
+                        <AvatarImage src={item.photoURL} alt={item.name} />
+                        <AvatarFallback>
+                          {(item.name || "U").slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-slate-900 truncate">
+                          {item.name}
+                        </p>
+                        {item.email && (
+                          <p className="text-xs text-slate-500 truncate">
+                            {item.email}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-slate-600">
+                    {item.designation || "HR Manager"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={item.role === "hr" ? "default" : "secondary"}
+                      className="uppercase"
+                    >
+                      {item.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      onClick={() =>
+                        handleRoleToggle(item._id, item.role, item.name)
+                      }
+                      variant={item.role === "employee" ? "outline" : "subtle"}
+                      size="sm"
+                    >
+                      <Shield className="h-3.5 w-3.5" strokeWidth={1.75} />
+                      {item.role === "employee" ? "Make HR" : "Make Employee"}
+                    </Button>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {item.workStatus === "active" ? (
+                      <Button
+                        onClick={() => handleFire(item._id, item.name)}
+                        variant="outline"
+                        size="sm"
+                        className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                      >
+                        <UserX className="h-3.5 w-3.5" strokeWidth={1.75} />
+                        Fire
+                      </Button>
+                    ) : (
+                      <Badge variant="destructive">Fired</Badge>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   );
 };

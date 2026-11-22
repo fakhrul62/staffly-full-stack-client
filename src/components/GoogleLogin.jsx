@@ -1,10 +1,15 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import useAuth from "../hooks/useAuth";
 import useAxiosPublic from "../hooks/useAxiosPublic";
+import { Button } from "./ui/button";
 
-const GoogleLogin = ({ text }) => {
+const GoogleLogin = ({ text = "Continue with Google" }) => {
   const { googleSignIn } = useAuth();
   const axiosPublic = useAxiosPublic();
+  const navigate = useNavigate();
+
   const handleGoogleSignIn = () => {
     googleSignIn()
       .then((result) => {
@@ -12,35 +17,34 @@ const GoogleLogin = ({ text }) => {
           .post("/users", {
             name: result.user.displayName,
             email: result.user.email,
-            password: "123Aa$",
             photoURL: result.user.photoURL,
             role: "employee",
             designation: "Sales Assistant",
             salary: 37500,
             bank: "AJ675HG978",
             isVerified: false,
-            workStatus:"active"
+            workStatus: "active",
           })
-          .then((res) => {
-            console.log(res.data);
+          .finally(() => {
+            navigate("/dashboard", { replace: true });
           });
       })
       .catch((error) => {
         console.log(error.message);
       });
   };
+
   return (
-    <div className="my-4 text-center">
-      <button
-        onClick={handleGoogleSignIn}
-        className="px-20 btn bg-wgite hover:bg-zinc-300 border border-zinc-300 hover:border-zinc-400 text-black hover:text-black duration-300 font-body"
-      >
-        {text}
-        <span className="text-xl">
-          <FcGoogle />
-        </span>
-      </button>
-    </div>
+    <Button
+      type="button"
+      variant="outline"
+      size="lg"
+      onClick={handleGoogleSignIn}
+      className="w-full h-11 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium"
+    >
+      <FcGoogle className="h-5 w-5" />
+      <span>{text} Google</span>
+    </Button>
   );
 };
 
