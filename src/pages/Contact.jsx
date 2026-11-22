@@ -38,7 +38,7 @@ const Contact = () => {
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-16 md:pb-24">
+    <section className="w-full px-4 sm:px-6 lg:px-10 pt-4 pb-16 md:pb-24">
       {/* Section Header */}
       <div className="max-w-2xl mx-auto text-center mb-10 md:mb-14">
         <Badge variant="default" className="mb-4">

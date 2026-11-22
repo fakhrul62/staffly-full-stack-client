@@ -69,7 +69,7 @@ const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 pt-4">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-4 sm:px-6 lg:px-10">
         <div className="flex h-16 items-center justify-between rounded-2xl border border-slate-200/80 bg-white/85 px-4 sm:px-6 shadow-sm backdrop-blur-md transition-all duration-300">
           {/* Brand */}
           <Link

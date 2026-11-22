@@ -75,7 +75,7 @@ const PricingSection = () => {
   return (
     <section
       id="pricing"
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24"
+      className="w-full px-4 sm:px-6 lg:px-10 py-16 md:py-24"
     >
       {/* Enterprise Compliance Trust Strip */}
       <div className="mb-16 rounded-2xl border border-slate-200/80 bg-white px-6 py-5 shadow-2xs">

@@ -27,7 +27,7 @@ const Footer = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-6">
+    <div className="w-full px-4 sm:px-6 lg:px-10 pb-6">
       <footer className="relative overflow-hidden rounded-3xl bg-slate-950 border border-slate-800/80 text-slate-300">
         {/* Subtle Decorative Wave Lines */}
         <svg

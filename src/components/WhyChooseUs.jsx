@@ -29,7 +29,7 @@ const reasons = [
 
 const WhyChooseUs = () => {
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20 md:pb-24">
+    <section className="w-full px-4 sm:px-6 lg:px-10 pt-8 pb-20 md:pb-24">
       {/* Section Header */}
       <div className="max-w-2xl mx-auto text-center mb-12 md:mb-14">
         <Badge variant="default" className="mb-4">

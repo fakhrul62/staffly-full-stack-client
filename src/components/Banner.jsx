@@ -65,7 +65,7 @@ const Banner = () => {
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-12">
+    <section className="w-full px-4 sm:px-6 lg:px-10 pt-2 pb-12">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         {/* Main Hero Carousel (8 columns) */}
         <div

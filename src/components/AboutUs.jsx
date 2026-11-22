@@ -17,7 +17,7 @@ const AboutUs = () => {
   return (
     <section
       id="about"
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12"
+      className="w-full px-4 sm:px-6 lg:px-10 py-8 md:py-12"
     >
       <div className="relative overflow-hidden rounded-3xl bg-slate-950 border border-slate-800/80 px-6 py-12 sm:px-10 md:p-14 lg:p-16 shadow-xl">
         {/* Subtle ambient edge highlight */}
